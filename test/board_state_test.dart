@@ -66,6 +66,33 @@ void main() {
             CoordinateStatus.empty,
           );
         });
+
+        test('Remove multiple stones', () {
+          final BoardState boardState = BoardState(boardSize: 3);
+          // ●  ○  .
+          // ●  ○  .
+          // ●  .  .
+          boardState.play(initialPlayer, boardState.loc(0, 0));
+          boardState.play(initialPlayer, boardState.loc(0, 1));
+          boardState.play(initialPlayer, boardState.loc(0, 2));
+
+          boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
+          boardState.play(initialPlayer.opponent, boardState.loc(1, 1));
+          boardState.play(initialPlayer.opponent, boardState.loc(1, 2));
+
+          expect(
+            boardState.flattenedBoard[boardState.loc(0, 0)],
+            CoordinateStatus.empty,
+          );
+          expect(
+            boardState.flattenedBoard[boardState.loc(0, 1)],
+            CoordinateStatus.empty,
+          );
+          expect(
+            boardState.flattenedBoard[boardState.loc(0, 2)],
+            CoordinateStatus.empty,
+          );
+        });
       });
     }
   });
