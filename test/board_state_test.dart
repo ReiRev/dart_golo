@@ -9,8 +9,14 @@ void main() {
       group('when initial player is $initialPlayer', () {
         test('Remove a center stone', () {
           final BoardState boardState = BoardState(boardSize: 3);
+          // .  .  .
+          // .  ○  .
+          // .  .  .
           boardState.play(initialPlayer, boardState.loc(1, 1));
 
+          // .  ●   .
+          // ●  ○  ●
+          // .  ●  .
           boardState.play(initialPlayer.opponent, boardState.loc(0, 1));
           boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
           boardState.play(initialPlayer.opponent, boardState.loc(1, 2));
@@ -24,25 +30,41 @@ void main() {
 
         test('Remove a corner stone', () {
           final BoardState boardState = BoardState(boardSize: 3);
+          // ○  .  .
+          // .  .  .
+          // .  .  .
           boardState.play(initialPlayer, boardState.loc(0, 0));
 
+          // ○  ●  .
+          // ●  .  .
+          // .  .  .
           boardState.play(initialPlayer.opponent, boardState.loc(0, 1));
           boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
 
-          expect(boardState.flattenedBoard[boardState.loc(0, 0)],
-              CoordinateStatus.empty);
+          expect(
+            boardState.flattenedBoard[boardState.loc(0, 0)],
+            CoordinateStatus.empty,
+          );
         });
 
         test('Remove a stone on a wall', () {
           final BoardState boardState = BoardState(boardSize: 3);
+          // .  ○  .
+          // .  .  .
+          // .  .  .
           boardState.play(initialPlayer, boardState.loc(1, 0));
 
+          // ●  ○  ●
+          // .  ●  .
+          // .  .  .
           boardState.play(initialPlayer.opponent, boardState.loc(0, 0));
           boardState.play(initialPlayer.opponent, boardState.loc(1, 1));
           boardState.play(initialPlayer.opponent, boardState.loc(2, 0));
 
-          expect(boardState.flattenedBoard[boardState.loc(1, 0)],
-              CoordinateStatus.empty);
+          expect(
+            boardState.flattenedBoard[boardState.loc(1, 0)],
+            CoordinateStatus.empty,
+          );
         });
       });
     }
