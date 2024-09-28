@@ -1,6 +1,4 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+/// A Dart package for the logic of Go/Igo/Weiqi/Baduk board games.
 library golo;
 
 export 'src/game.dart';
