@@ -353,4 +353,28 @@ class BoardState {
   void play(Player player, int x, int y) {
     _play(player, _loc(x, y));
   }
+
+  @override
+  String toString() {
+    String res = "";
+    for (int y = 0; y < boardSize; y++) {
+      for (int x = 0; x < boardSize; x++) {
+        switch (at(x, y)) {
+          case CoordinateStatus.empty:
+            res = "$res. ";
+            break;
+          case CoordinateStatus.black:
+            res = "${res}x ";
+            break;
+          case CoordinateStatus.white:
+            res = "${res}o ";
+            break;
+          default:
+            break;
+        }
+      }
+      res = y == boardSize - 1 ? res : "$res\n";
+    }
+    return res;
+  }
 }
