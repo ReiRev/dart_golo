@@ -1,10 +1,10 @@
 import 'base_status.dart';
 
 class Player extends BaseStatus {
-  static Player black = Player._(1);
-  static Player white = Player._(2);
+  static const Player black = Player._(1);
+  static const Player white = Player._(2);
 
-  Player._(super.value);
+  const Player._(super.value);
 
   Player get opponent => this == black ? white : black;
 

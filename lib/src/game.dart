@@ -18,4 +18,9 @@ class Game {
   void play(Player player, int x, int y) {
     _boardState.play(player, x, y);
   }
+
+  @override
+  String toString() {
+    return _boardState.toString();
+  }
 }

@@ -5,7 +5,7 @@ abstract class BaseStatus {
   @override
   int get hashCode => value;
 
-  BaseStatus(this.value);
+  const BaseStatus(this.value);
 
   @override
   bool operator ==(Object other) {
