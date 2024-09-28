@@ -142,13 +142,13 @@ class BoardState {
     int newLiberties = _groupLibertyCounts[phead];
     int loc = child;
     while (true) {
-      _adjOffsets.forEach((offset) {
+      for (var offset in _adjOffsets) {
         int adj = loc + offset;
         if (_flattenedBoard[adj] == CoordinateStatus.empty &&
             !_isGroupAdjacent(phead, adj)) {
           newLiberties += 1;
         }
-      });
+      }
       // Now assign the new parent head to take over the child (this also prevents double-counting liberties)
       _groupHeadIndices[loc] = phead;
 
@@ -232,11 +232,11 @@ class BoardState {
     _groupHeadIndices[loc] = loc;
     _groupStoneCounts[loc] = 1;
     int liberties = 0;
-    _adjOffsets.forEach((offset) {
+    for (var offset in _adjOffsets) {
       if (_flattenedBoard[loc + offset] == CoordinateStatus.empty) {
         liberties += 1;
       }
-    });
+    }
     _groupLibertyCounts[loc] = liberties;
     _groupNextIndices[loc] = loc;
     _groupPrevIndices[loc] = loc;
