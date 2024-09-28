@@ -3,5 +3,7 @@
 /// More dartdocs go here.
 library golo;
 
-export 'src/board_state.dart';
+export 'src/game.dart';
 export 'src/rule.dart';
+export 'src/player.dart';
+export 'src/coordinate_status.dart';

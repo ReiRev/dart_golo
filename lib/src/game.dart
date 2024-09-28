@@ -1,16 +1,21 @@
-// import 'board.dart';
-// import 'rule.dart';
+import 'board_state.dart';
+import 'player.dart';
 
-// class Game {
-//   final int boardSize;
-//   final Rule rule;
+class Game {
+  final int _boardSize;
+  int get boardSize => _boardSize;
 
-//   late Board board;
+  late BoardState _boardState;
+  BoardState get boardState => _boardState;
 
-//   Game({
-//     required this.boardSize,
-//     required this.rule,
-//   }) : assert(boardSize > 0) {
-//     board = Board(size: boardSize);
-//   }
-// }
+  Game({
+    required int boardSize,
+  })  : assert(boardSize > 0),
+        _boardSize = boardSize {
+    _boardState = BoardState(boardSize: boardSize);
+  }
+
+  void play(Player player, int x, int y) {
+    _boardState.play(player, x, y);
+  }
+}
