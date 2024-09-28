@@ -3,13 +3,13 @@ import 'package:golo/src/player.dart';
 import 'base_status.dart';
 
 class CoordinateStatus extends BaseStatus {
-  static CoordinateStatus empty = CoordinateStatus._(0);
-  static CoordinateStatus black = CoordinateStatus._(1);
-  static CoordinateStatus white = CoordinateStatus._(2);
-  static CoordinateStatus wall = CoordinateStatus._(3);
+  static const CoordinateStatus empty = CoordinateStatus._(0);
+  static const CoordinateStatus black = CoordinateStatus._(1);
+  static const CoordinateStatus white = CoordinateStatus._(2);
+  static const CoordinateStatus wall = CoordinateStatus._(3);
 
   // CoordinateStatus._(int value) : super._(value);
-  CoordinateStatus._(super.value);
+  const CoordinateStatus._(super.value);
 
   factory CoordinateStatus.fromPlayer(Player player) {
     if (player == Player.black) {
