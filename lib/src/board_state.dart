@@ -19,7 +19,7 @@ class BoardState {
   late final List<int> _adjOffsets;
 
   /// The offsets to the diagonal points of the flattened list.
-  late final List<int> _diagOffsets;
+  // late final List<int> _diagOffsets;
 
   late List<int> _groupHeadIndices;
   late List<int> _groupStoneCounts;
@@ -37,7 +37,7 @@ class BoardState {
     _flattenedBoard = List.filled(_arrSize, CoordinateStatus.empty);
     _dy = boardSize + 1;
     _adjOffsets = [-_dy, -1, 1, _dy];
-    _diagOffsets = [-_dy - 1, -_dy + 1, _dy - 1, _dy + 1];
+    // _diagOffsets = [-_dy - 1, -_dy + 1, _dy - 1, _dy + 1];
 
     _simpleKoPoint = null;
 
@@ -94,26 +94,26 @@ class BoardState {
     return true;
   }
 
-  bool _wouldBeSuicide(Player player, int loc) {
-    // If empty, not suicide
-    if (_adjOffsets.any(
-        (offset) => _flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
-      return false;
-    }
-    // If capture, not suicide
-    if (_adjOffsets.any((offset) =>
-        _flattenedBoard[loc + offset] == player.opponent &&
-        _groupLibertyCounts[_groupHeadIndices[loc + offset]] == 1)) {
-      return false;
-    }
-    // If connects to own stone, then not single stone suicide
-    if (_adjOffsets.any((offset) =>
-        _flattenedBoard[offset + loc] == player.opponent &&
-        _groupLibertyCounts[_groupHeadIndices[offset + loc]] > 1)) {
-      return false;
-    }
-    return true;
-  }
+  // bool _wouldBeSuicide(Player player, int loc) {
+  //   // If empty, not suicide
+  //   if (_adjOffsets.any(
+  //       (offset) => _flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
+  //     return false;
+  //   }
+  //   // If capture, not suicide
+  //   if (_adjOffsets.any((offset) =>
+  //       _flattenedBoard[loc + offset] == player.opponent &&
+  //       _groupLibertyCounts[_groupHeadIndices[loc + offset]] == 1)) {
+  //     return false;
+  //   }
+  //   // If connects to own stone, then not single stone suicide
+  //   if (_adjOffsets.any((offset) =>
+  //       _flattenedBoard[offset + loc] == player.opponent &&
+  //       _groupLibertyCounts[_groupHeadIndices[offset + loc]] > 1)) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   bool _isGroupAdjacent(int head, int loc) {
     return _adjOffsets.any((offset) => _groupHeadIndices[loc + offset] == head);
@@ -176,7 +176,7 @@ class BoardState {
   }
 
   void _removeUnsafe(int group) {
-    int head = _groupHeadIndices[group];
+    // int head = _groupHeadIndices[group];
     Player player = _flattenedBoard[group].player;
     Player opponent = player.opponent;
 
