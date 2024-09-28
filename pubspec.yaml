@@ -1,7 +1,11 @@
 name: golo
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: A Dart package for the logic of Go/Igo/Weiqi/Baduk board games.
+version: 0.0.1
+homepage: https://github.com/ReiRev/dart_golo
+repository: https://github.com/ReiRev/dart_golo
+funding:
+  - https://github.com/sponsors/ReiRev
+  - https://ko-fi.com/ReiRev
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
