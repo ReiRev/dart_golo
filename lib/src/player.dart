@@ -8,6 +8,7 @@ class Player extends BaseStatus {
 
   Player get opponent => this == black ? white : black;
 
+  @override
   String toString() {
     return this == black ? 'black' : 'white';
   }

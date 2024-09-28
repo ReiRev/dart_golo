@@ -2,6 +2,7 @@
 abstract class BaseStatus {
   final int value;
 
+  @override
   int get hashCode => value;
 
   BaseStatus(this.value);

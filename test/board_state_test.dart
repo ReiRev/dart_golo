@@ -12,18 +12,18 @@ void main() {
           // .  .  .
           // .  ○  .
           // .  .  .
-          boardState.play(initialPlayer, boardState.loc(1, 1));
+          boardState.play(initialPlayer, 1, 1);
 
           // .  ●   .
           // ●  ○  ●
           // .  ●  .
-          boardState.play(initialPlayer.opponent, boardState.loc(0, 1));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 2));
-          boardState.play(initialPlayer.opponent, boardState.loc(2, 1));
+          boardState.play(initialPlayer.opponent, 0, 1);
+          boardState.play(initialPlayer.opponent, 1, 0);
+          boardState.play(initialPlayer.opponent, 1, 2);
+          boardState.play(initialPlayer.opponent, 2, 1);
 
           expect(
-            boardState.flattenedBoard[boardState.loc(1, 1)],
+            boardState.at(1, 1),
             CoordinateStatus.empty,
           );
         });
@@ -33,16 +33,16 @@ void main() {
           // ○  .  .
           // .  .  .
           // .  .  .
-          boardState.play(initialPlayer, boardState.loc(0, 0));
+          boardState.play(initialPlayer, 0, 0);
 
           // ○  ●  .
           // ●  .  .
           // .  .  .
-          boardState.play(initialPlayer.opponent, boardState.loc(0, 1));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
+          boardState.play(initialPlayer.opponent, 0, 1);
+          boardState.play(initialPlayer.opponent, 1, 0);
 
           expect(
-            boardState.flattenedBoard[boardState.loc(0, 0)],
+            boardState.at(0, 0),
             CoordinateStatus.empty,
           );
         });
@@ -52,17 +52,17 @@ void main() {
           // .  ○  .
           // .  .  .
           // .  .  .
-          boardState.play(initialPlayer, boardState.loc(1, 0));
+          boardState.play(initialPlayer, 1, 0);
 
           // ●  ○  ●
           // .  ●  .
           // .  .  .
-          boardState.play(initialPlayer.opponent, boardState.loc(0, 0));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 1));
-          boardState.play(initialPlayer.opponent, boardState.loc(2, 0));
+          boardState.play(initialPlayer.opponent, 0, 0);
+          boardState.play(initialPlayer.opponent, 1, 1);
+          boardState.play(initialPlayer.opponent, 2, 0);
 
           expect(
-            boardState.flattenedBoard[boardState.loc(1, 0)],
+            boardState.at(1, 0),
             CoordinateStatus.empty,
           );
         });
@@ -72,24 +72,24 @@ void main() {
           // ●  ○  .
           // ●  ○  .
           // ●  .  .
-          boardState.play(initialPlayer, boardState.loc(0, 0));
-          boardState.play(initialPlayer, boardState.loc(0, 1));
-          boardState.play(initialPlayer, boardState.loc(0, 2));
+          boardState.play(initialPlayer, 0, 0);
+          boardState.play(initialPlayer, 0, 1);
+          boardState.play(initialPlayer, 0, 2);
 
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 0));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 1));
-          boardState.play(initialPlayer.opponent, boardState.loc(1, 2));
+          boardState.play(initialPlayer.opponent, 1, 0);
+          boardState.play(initialPlayer.opponent, 1, 1);
+          boardState.play(initialPlayer.opponent, 1, 2);
 
           expect(
-            boardState.flattenedBoard[boardState.loc(0, 0)],
+            boardState.at(0, 0),
             CoordinateStatus.empty,
           );
           expect(
-            boardState.flattenedBoard[boardState.loc(0, 1)],
+            boardState.at(0, 1),
             CoordinateStatus.empty,
           );
           expect(
-            boardState.flattenedBoard[boardState.loc(0, 2)],
+            boardState.at(0, 2),
             CoordinateStatus.empty,
           );
         });

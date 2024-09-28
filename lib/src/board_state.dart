@@ -3,118 +3,127 @@ import 'player.dart';
 import 'errors.dart';
 
 class BoardState {
-  final int boardSize;
-  static int passLoc = 0;
+  final int _boardSize;
+
+  /// The size of the board.
+  int get boardSize => _boardSize;
+
+  static final int _passLoc = 0;
 
   /// The board represented as a flattened list.
-  late final List<CoordinateStatus> flattenedBoard;
-  late final int arrSize;
-  late final int dy;
+  late final List<CoordinateStatus> _flattenedBoard;
+  late final int _arrSize;
+  late final int _dy;
 
   /// The offsets to the adjacent points of the flattened list.
-  late final List<int> adjOffsets;
+  late final List<int> _adjOffsets;
 
   /// The offsets to the diagonal points of the flattened list.
-  late final List<int> diagOffsets;
+  late final List<int> _diagOffsets;
 
-  late List<int> groupHeadIndices;
-  late List<int> groupStoneCounts;
-  late List<int> groupLibertyCounts;
-  late List<int> groupNextIndices;
-  late List<int> groupPrevIndices;
+  late List<int> _groupHeadIndices;
+  late List<int> _groupStoneCounts;
+  late List<int> _groupLibertyCounts;
+  late List<int> _groupNextIndices;
+  late List<int> _groupPrevIndices;
 
-  int? simpleKoPoint;
+  int? _simpleKoPoint;
+  int get simpleKoPoint => _simpleKoPoint!;
 
   BoardState({
-    required this.boardSize,
-  }) {
-    arrSize = (boardSize + 1) * (boardSize + 2) + 1;
-    flattenedBoard = List.filled(arrSize, CoordinateStatus.empty);
-    dy = boardSize + 1;
-    adjOffsets = [-dy, -1, 1, dy];
-    diagOffsets = [-dy - 1, -dy + 1, dy - 1, dy + 1];
+    required int boardSize,
+  }) : _boardSize = boardSize {
+    _arrSize = (boardSize + 1) * (boardSize + 2) + 1;
+    _flattenedBoard = List.filled(_arrSize, CoordinateStatus.empty);
+    _dy = boardSize + 1;
+    _adjOffsets = [-_dy, -1, 1, _dy];
+    _diagOffsets = [-_dy - 1, -_dy + 1, _dy - 1, _dy + 1];
 
-    simpleKoPoint = null;
+    _simpleKoPoint = null;
 
-    groupHeadIndices = List.filled(arrSize, 0);
-    groupStoneCounts = List.filled(arrSize, 0);
-    groupLibertyCounts = List.filled(arrSize, 0);
-    groupNextIndices = List.filled(arrSize, 0);
-    groupPrevIndices = List.filled(arrSize, 0);
+    _groupHeadIndices = List.filled(_arrSize, 0);
+    _groupStoneCounts = List.filled(_arrSize, 0);
+    _groupLibertyCounts = List.filled(_arrSize, 0);
+    _groupNextIndices = List.filled(_arrSize, 0);
+    _groupPrevIndices = List.filled(_arrSize, 0);
 
     for (int i = -1; i < boardSize; i++) {
-      flattenedBoard[loc(i, -1)] = CoordinateStatus.wall;
-      flattenedBoard[loc(i, boardSize)] = CoordinateStatus.wall;
-      flattenedBoard[loc(-1, i)] = CoordinateStatus.wall;
-      flattenedBoard[loc(boardSize, i)] = CoordinateStatus.wall;
+      _flattenedBoard[_loc(i, -1)] = CoordinateStatus.wall;
+      _flattenedBoard[_loc(i, boardSize)] = CoordinateStatus.wall;
+      _flattenedBoard[_loc(-1, i)] = CoordinateStatus.wall;
+      _flattenedBoard[_loc(boardSize, i)] = CoordinateStatus.wall;
     }
 
     // Catch errors easily.
-    groupHeadIndices[0] = -1;
-    groupNextIndices[0] = -1;
-    groupPrevIndices[0] = -1;
+    _groupHeadIndices[0] = -1;
+    _groupNextIndices[0] = -1;
+    _groupPrevIndices[0] = -1;
   }
 
-  /// Returns the index of the location (x, y) in the flattenedBoard array.
-  int loc(int x, int y) {
-    return (x + 1) + dy * (y + 1);
+  CoordinateStatus at(int x, int y) {
+    return _flattenedBoard[_loc(x, y)];
   }
 
-  bool isOnBoard(int loc) {
+  /// Returns the index of the location (x, y) in the _flattenedBoard array.
+  int _loc(int x, int y) {
+    return (x + 1) + _dy * (y + 1);
+  }
+
+  bool _isOnBoard(int loc) {
     return loc >= 0 &&
-        loc < arrSize &&
-        flattenedBoard[loc] != CoordinateStatus.wall;
+        loc < _arrSize &&
+        _flattenedBoard[loc] != CoordinateStatus.wall;
   }
 
-  bool wouldBeSingleStoneSuicide(Player player, int loc) {
+  bool _wouldBeSingleStoneSuicide(Player player, int loc) {
     // If empty, not suicide
-    if (adjOffsets.any(
-        (offset) => flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
+    if (_adjOffsets.any(
+        (offset) => _flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
       return false;
     }
     // If capture, not suicide
-    if (adjOffsets.any((offset) =>
-        flattenedBoard[loc + offset] == player.opponent &&
-        groupLibertyCounts[groupHeadIndices[loc + offset]] == 1)) {
+    if (_adjOffsets.any((offset) =>
+        _flattenedBoard[loc + offset] == player.opponent &&
+        _groupLibertyCounts[_groupHeadIndices[loc + offset]] == 1)) {
       return false;
     }
     // If connects to own stone, then not single stone suicide
-    if (adjOffsets.any((offset) => flattenedBoard[offset + loc] == player)) {
+    if (_adjOffsets.any((offset) => _flattenedBoard[offset + loc] == player)) {
       return false;
     }
     return true;
   }
 
-  bool wouldBeSuicide(Player player, int loc) {
+  bool _wouldBeSuicide(Player player, int loc) {
     // If empty, not suicide
-    if (adjOffsets.any(
-        (offset) => flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
+    if (_adjOffsets.any(
+        (offset) => _flattenedBoard[loc + offset] == CoordinateStatus.empty)) {
       return false;
     }
     // If capture, not suicide
-    if (adjOffsets.any((offset) =>
-        flattenedBoard[loc + offset] == player.opponent &&
-        groupLibertyCounts[groupHeadIndices[loc + offset]] == 1)) {
+    if (_adjOffsets.any((offset) =>
+        _flattenedBoard[loc + offset] == player.opponent &&
+        _groupLibertyCounts[_groupHeadIndices[loc + offset]] == 1)) {
       return false;
     }
     // If connects to own stone, then not single stone suicide
-    if (adjOffsets.any((offset) =>
-        flattenedBoard[offset + loc] == player.opponent &&
-        groupLibertyCounts[groupHeadIndices[offset + loc]] > 1)) {
+    if (_adjOffsets.any((offset) =>
+        _flattenedBoard[offset + loc] == player.opponent &&
+        _groupLibertyCounts[_groupHeadIndices[offset + loc]] > 1)) {
       return false;
     }
     return true;
   }
 
-  bool isGroupAdjacent(int head, int loc) {
-    return adjOffsets.any((offset) => groupHeadIndices[loc + offset] == head);
+  bool _isGroupAdjacent(int head, int loc) {
+    return _adjOffsets.any((offset) => _groupHeadIndices[loc + offset] == head);
   }
 
-  void mergeUnsafe(int loc0, int loc1) {
+  void _mergeUnsafe(int loc0, int loc1) {
     // Can be simpler using UnionFind?
     int parent, child;
-    if (groupStoneCounts[groupHeadIndices[loc0]] >=
-        groupStoneCounts[groupHeadIndices[loc1]]) {
+    if (_groupStoneCounts[_groupHeadIndices[loc0]] >=
+        _groupStoneCounts[_groupHeadIndices[loc1]]) {
       parent = loc0;
       child = loc1;
     } else {
@@ -122,92 +131,92 @@ class BoardState {
       parent = loc0;
     }
 
-    int phead = groupHeadIndices[parent];
-    int chead = groupHeadIndices[child];
+    int phead = _groupHeadIndices[parent];
+    int chead = _groupHeadIndices[child];
     if (phead == chead) {
       return;
     }
 
     // Walk the child group assigning the new head and simultaneously counting liberties
-    int newStoneCount = groupStoneCounts[phead] + groupStoneCounts[chead];
-    int newLiberties = groupLibertyCounts[phead];
+    int newStoneCount = _groupStoneCounts[phead] + _groupStoneCounts[chead];
+    int newLiberties = _groupLibertyCounts[phead];
     int loc = child;
     while (true) {
-      adjOffsets.forEach((offset) {
+      _adjOffsets.forEach((offset) {
         int adj = loc + offset;
-        if (flattenedBoard[adj] == CoordinateStatus.empty &&
-            !isGroupAdjacent(phead, adj)) {
+        if (_flattenedBoard[adj] == CoordinateStatus.empty &&
+            !_isGroupAdjacent(phead, adj)) {
           newLiberties += 1;
         }
       });
       // Now assign the new parent head to take over the child (this also prevents double-counting liberties)
-      groupHeadIndices[loc] = phead;
+      _groupHeadIndices[loc] = phead;
 
-      loc = groupNextIndices[loc];
+      loc = _groupNextIndices[loc];
       if (loc == child) {
         break;
       }
     }
 
     // Zero out the old head
-    groupStoneCounts[chead] = 0;
-    groupLibertyCounts[chead] = 0;
+    _groupStoneCounts[chead] = 0;
+    _groupLibertyCounts[chead] = 0;
 
     // Update the new head
-    groupStoneCounts[phead] = newStoneCount;
-    groupLibertyCounts[phead] = newLiberties;
+    _groupStoneCounts[phead] = newStoneCount;
+    _groupLibertyCounts[phead] = newLiberties;
 
     // Combine the linked lists
-    int plast = groupPrevIndices[phead];
-    int clast = groupPrevIndices[chead];
-    groupNextIndices[clast] = phead;
-    groupNextIndices[plast] = chead;
-    groupPrevIndices[chead] = plast;
-    groupPrevIndices[phead] = clast;
+    int plast = _groupPrevIndices[phead];
+    int clast = _groupPrevIndices[chead];
+    _groupNextIndices[clast] = phead;
+    _groupNextIndices[plast] = chead;
+    _groupPrevIndices[chead] = plast;
+    _groupPrevIndices[phead] = clast;
   }
 
-  void removeUnsafe(int group) {
-    int head = groupHeadIndices[group];
-    Player player = flattenedBoard[group].player;
+  void _removeUnsafe(int group) {
+    int head = _groupHeadIndices[group];
+    Player player = _flattenedBoard[group].player;
     Player opponent = player.opponent;
 
     // Walk all the stones in the group and delete them
     int loc = group;
     while (true) {
       // Add a liberty to all surrounding opposing groups, taking care to avoid double counting.
-      int adj0 = loc + adjOffsets[0];
-      int adj1 = loc + adjOffsets[1];
-      int adj2 = loc + adjOffsets[2];
-      int adj3 = loc + adjOffsets[3];
-      if (flattenedBoard[adj0] == opponent) {
-        groupLibertyCounts[groupHeadIndices[adj0]] += 1;
+      int adj0 = loc + _adjOffsets[0];
+      int adj1 = loc + _adjOffsets[1];
+      int adj2 = loc + _adjOffsets[2];
+      int adj3 = loc + _adjOffsets[3];
+      if (_flattenedBoard[adj0] == opponent) {
+        _groupLibertyCounts[_groupHeadIndices[adj0]] += 1;
       }
-      if (flattenedBoard[adj1] == opponent) {
-        if (groupHeadIndices[adj1] != groupHeadIndices[adj0]) {
-          groupLibertyCounts[groupHeadIndices[adj1]] += 1;
+      if (_flattenedBoard[adj1] == opponent) {
+        if (_groupHeadIndices[adj1] != _groupHeadIndices[adj0]) {
+          _groupLibertyCounts[_groupHeadIndices[adj1]] += 1;
         }
       }
-      if (flattenedBoard[adj2] == opponent) {
-        if (groupHeadIndices[adj2] != groupHeadIndices[adj0] &&
-            groupHeadIndices[adj2] != groupHeadIndices[adj1]) {
-          groupLibertyCounts[groupHeadIndices[adj2]] += 1;
+      if (_flattenedBoard[adj2] == opponent) {
+        if (_groupHeadIndices[adj2] != _groupHeadIndices[adj0] &&
+            _groupHeadIndices[adj2] != _groupHeadIndices[adj1]) {
+          _groupLibertyCounts[_groupHeadIndices[adj2]] += 1;
         }
       }
-      if (flattenedBoard[adj3] == opponent) {
-        if (groupHeadIndices[adj3] != groupHeadIndices[adj0] &&
-            groupHeadIndices[adj3] != groupHeadIndices[adj1] &&
-            groupHeadIndices[adj3] != groupHeadIndices[adj2]) {
-          groupLibertyCounts[groupHeadIndices[adj3]] += 1;
+      if (_flattenedBoard[adj3] == opponent) {
+        if (_groupHeadIndices[adj3] != _groupHeadIndices[adj0] &&
+            _groupHeadIndices[adj3] != _groupHeadIndices[adj1] &&
+            _groupHeadIndices[adj3] != _groupHeadIndices[adj2]) {
+          _groupLibertyCounts[_groupHeadIndices[adj3]] += 1;
         }
       }
 
-      int nextLoc = groupNextIndices[loc];
+      int nextLoc = _groupNextIndices[loc];
 
       // Zero out all the stuff
-      flattenedBoard[loc] = CoordinateStatus.empty;
-      groupHeadIndices[loc] = 0;
-      groupNextIndices[loc] = 0;
-      groupPrevIndices[loc] = 0;
+      _flattenedBoard[loc] = CoordinateStatus.empty;
+      _groupHeadIndices[loc] = 0;
+      _groupNextIndices[loc] = 0;
+      _groupPrevIndices[loc] = 0;
 
       // Advance around the linked list
       loc = nextLoc;
@@ -217,80 +226,81 @@ class BoardState {
     }
   }
 
-  void addUnsafe(Player player, int loc) {
-    flattenedBoard[loc] = CoordinateStatus.fromPlayer(player);
+  void _addUnsafe(Player player, int loc) {
+    _flattenedBoard[loc] = CoordinateStatus.fromPlayer(player);
 
-    groupHeadIndices[loc] = loc;
-    groupStoneCounts[loc] = 1;
+    _groupHeadIndices[loc] = loc;
+    _groupStoneCounts[loc] = 1;
     int liberties = 0;
-    adjOffsets.forEach((offset) {
-      if (flattenedBoard[loc + offset] == CoordinateStatus.empty) {
+    _adjOffsets.forEach((offset) {
+      if (_flattenedBoard[loc + offset] == CoordinateStatus.empty) {
         liberties += 1;
       }
     });
-    groupLibertyCounts[loc] = liberties;
-    groupNextIndices[loc] = loc;
-    groupPrevIndices[loc] = loc;
+    _groupLibertyCounts[loc] = liberties;
+    _groupNextIndices[loc] = loc;
+    _groupPrevIndices[loc] = loc;
 
     // Fill surrounding liberties of all adjacent groups
     // Carefully avoid double counting
-    int adj0 = loc + adjOffsets[0];
-    int adj1 = loc + adjOffsets[1];
-    int adj2 = loc + adjOffsets[2];
-    int adj3 = loc + adjOffsets[3];
-    if (flattenedBoard[adj0] == CoordinateStatus.black ||
-        flattenedBoard[adj0] == CoordinateStatus.white) {
-      groupLibertyCounts[groupHeadIndices[adj0]] -= 1;
+    int adj0 = loc + _adjOffsets[0];
+    int adj1 = loc + _adjOffsets[1];
+    int adj2 = loc + _adjOffsets[2];
+    int adj3 = loc + _adjOffsets[3];
+    if (_flattenedBoard[adj0] == CoordinateStatus.black ||
+        _flattenedBoard[adj0] == CoordinateStatus.white) {
+      _groupLibertyCounts[_groupHeadIndices[adj0]] -= 1;
     }
-    if (flattenedBoard[adj1] == CoordinateStatus.black ||
-        flattenedBoard[adj1] == CoordinateStatus.white) {
-      if (groupHeadIndices[adj1] != groupHeadIndices[adj0]) {
-        groupLibertyCounts[groupHeadIndices[adj1]] -= 1;
+    if (_flattenedBoard[adj1] == CoordinateStatus.black ||
+        _flattenedBoard[adj1] == CoordinateStatus.white) {
+      if (_groupHeadIndices[adj1] != _groupHeadIndices[adj0]) {
+        _groupLibertyCounts[_groupHeadIndices[adj1]] -= 1;
       }
     }
-    if (flattenedBoard[adj2] == CoordinateStatus.black ||
-        flattenedBoard[adj2] == CoordinateStatus.white) {
-      if (groupHeadIndices[adj2] != groupHeadIndices[adj0] &&
-          groupHeadIndices[adj2] != groupHeadIndices[adj1]) {
-        groupLibertyCounts[groupHeadIndices[adj2]] -= 1;
+    if (_flattenedBoard[adj2] == CoordinateStatus.black ||
+        _flattenedBoard[adj2] == CoordinateStatus.white) {
+      if (_groupHeadIndices[adj2] != _groupHeadIndices[adj0] &&
+          _groupHeadIndices[adj2] != _groupHeadIndices[adj1]) {
+        _groupLibertyCounts[_groupHeadIndices[adj2]] -= 1;
       }
     }
-    if (flattenedBoard[adj3] == CoordinateStatus.black ||
-        flattenedBoard[adj3] == CoordinateStatus.white) {
-      if (groupHeadIndices[adj3] != groupHeadIndices[adj0] &&
-          groupHeadIndices[adj3] != groupHeadIndices[adj1] &&
-          groupHeadIndices[adj3] != groupHeadIndices[adj2]) {
-        groupLibertyCounts[groupHeadIndices[adj3]] -= 1;
+    if (_flattenedBoard[adj3] == CoordinateStatus.black ||
+        _flattenedBoard[adj3] == CoordinateStatus.white) {
+      if (_groupHeadIndices[adj3] != _groupHeadIndices[adj0] &&
+          _groupHeadIndices[adj3] != _groupHeadIndices[adj1] &&
+          _groupHeadIndices[adj3] != _groupHeadIndices[adj2]) {
+        _groupLibertyCounts[_groupHeadIndices[adj3]] -= 1;
       }
     }
 
     // Merge groups
-    for (var offset in adjOffsets) {
-      if (flattenedBoard[loc + offset] == CoordinateStatus.fromPlayer(player)) {
-        mergeUnsafe(loc, loc + offset);
+    for (var offset in _adjOffsets) {
+      if (_flattenedBoard[loc + offset] ==
+          CoordinateStatus.fromPlayer(player)) {
+        _mergeUnsafe(loc, loc + offset);
       }
     }
 
     // Resolve captures
     int opponentStoneCaptures = 0;
     int caploc = 0;
-    for (var offset in adjOffsets) {
-      if (flattenedBoard[loc + offset] == player.opponent &&
-          groupLibertyCounts[groupHeadIndices[loc + offset]] == 0) {
+    for (var offset in _adjOffsets) {
+      if (_flattenedBoard[loc + offset] == player.opponent &&
+          _groupLibertyCounts[_groupHeadIndices[loc + offset]] == 0) {
         // Capture the stones
         opponentStoneCaptures +=
-            groupStoneCounts[groupHeadIndices[loc + offset]];
+            _groupStoneCounts[_groupHeadIndices[loc + offset]];
         caploc = loc + offset;
-        removeUnsafe(loc + offset);
+        _removeUnsafe(loc + offset);
       }
     }
 
     // Suicide
     // TODO: do this in Game class
     // int playerStoneCaptures = 0;
-    if (groupLibertyCounts[groupHeadIndices[loc]] == 0) {
-      // playerStoneCaptures += groupStoneCounts[groupHeadIndices[loc]];
-      removeUnsafe(loc);
+    if (_groupLibertyCounts[_groupHeadIndices[loc]] == 0) {
+      // playerStoneCaptures += _groupStoneCounts[_groupHeadIndices[loc]];
+      _removeUnsafe(loc);
     }
     // self.num_captures_made[pla] += pla_stones_captured
     // self.num_captures_made[opp] += opp_stones_captured
@@ -306,37 +316,41 @@ class BoardState {
     // else:
     //     self.simple_ko_point = None
     if (opponentStoneCaptures == 1 &&
-        groupStoneCounts[groupHeadIndices[loc]] == 1 &&
-        groupLibertyCounts[groupHeadIndices[loc]] == 1) {
-      simpleKoPoint = caploc;
+        _groupStoneCounts[_groupHeadIndices[loc]] == 1 &&
+        _groupLibertyCounts[_groupHeadIndices[loc]] == 1) {
+      _simpleKoPoint = caploc;
     } else {
-      simpleKoPoint = null;
+      _simpleKoPoint = null;
     }
   }
 
-  void playUnsafe(Player player, int loc) {
-    if (loc == passLoc) {
-      simpleKoPoint = null;
+  void _playUnsafe(Player player, int loc) {
+    if (loc == _passLoc) {
+      _simpleKoPoint = null;
     } else {
-      addUnsafe(player, loc);
+      _addUnsafe(player, loc);
     }
   }
 
-  void play(Player player, int loc) {
-    if (loc != passLoc) {
-      if (!isOnBoard(loc)) {
+  void _play(Player player, int loc) {
+    if (loc != _passLoc) {
+      if (!_isOnBoard(loc)) {
         throw IllegalMoveError("Location is outside of the board.");
       }
-      if (flattenedBoard[loc] != CoordinateStatus.empty) {
+      if (_flattenedBoard[loc] != CoordinateStatus.empty) {
         throw IllegalMoveError("Location is not empty.");
       }
-      if (wouldBeSingleStoneSuicide(player, loc)) {
+      if (_wouldBeSingleStoneSuicide(player, loc)) {
         throw IllegalMoveError("Move would be illegal single stone suicide");
       }
-      if (loc == simpleKoPoint) {
+      if (loc == _simpleKoPoint) {
         throw IllegalMoveError("Move would be illegal simple ko recapture");
       }
     }
-    playUnsafe(player, loc);
+    _playUnsafe(player, loc);
+  }
+
+  void play(Player player, int x, int y) {
+    _play(player, _loc(x, y));
   }
 }
