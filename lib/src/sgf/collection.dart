@@ -4,11 +4,11 @@ import './node.dart';
 import './properties/properties.dart';
 
 class Collection extends Equatable {
-  late final List<Node> nodes;
+  final Node rootNode;
 
-  Collection({List<Node>? nodes}) {
-    this.nodes = nodes ?? [];
-  }
+  Collection({
+    required this.rootNode,
+  });
 
   factory Collection.fromString(String sgf) {
     // String cleaned = sgf.replaceAll(RegExp(r'\s'), '');
@@ -59,9 +59,12 @@ class Collection extends Equatable {
     }
     var children = currentNode.children;
     print("$children");
-    return Collection(nodes: currentNode.children);
+
+    return Collection(
+      rootNode: currentNode.children.first,
+    );
   }
 
   @override
-  List<Object?> get props => [nodes];
+  List<Object?> get props => [rootNode];
 }
