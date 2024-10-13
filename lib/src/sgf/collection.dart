@@ -11,14 +11,14 @@ class Collection extends Equatable {
   }
 
   factory Collection.fromString(String sgf) {
-    String cleaned = sgf.replaceAll(RegExp(r'\s'), '');
+    // String cleaned = sgf.replaceAll(RegExp(r'\s'), '');
     List<Node> nodesStack = [];
     // The children of this will be a root node.
     Node currentNode = Node();
     String propertyIdentifier = '';
     String propertyValue = '';
     bool isReadingPropertyValue = false;
-    for (final String char in cleaned.split('')) {
+    for (final String char in sgf.split('')) {
       switch (char) {
         case '(':
           nodesStack.add(currentNode);
@@ -37,7 +37,9 @@ class Collection extends Equatable {
           isReadingPropertyValue = false;
           currentNode.properties.add(
             Property(
-              identifier: PropertyIdentifier(propertyIdentifier),
+              identifier: PropertyIdentifier(
+                propertyIdentifier.replaceAll(RegExp(r'\s'), ''),
+              ),
               value: propertyValue,
             ),
           );
