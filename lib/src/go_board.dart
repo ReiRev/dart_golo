@@ -16,8 +16,9 @@ class GoBoard {
     }
   }
 
-  GoBoard.fromDimension(int width, int height)
-      : this(List.generate(height, (_) => List.generate(width, (_) => null)));
+  GoBoard.fromDimension(int width, [int? height])
+      : this(List.generate(
+            height ?? width, (_) => List.generate(width, (_) => null)));
 
   int get height => state.length;
   int get width => state[0].length;

@@ -33,10 +33,18 @@ void main() {
       });
     });
 
-    test('creates board from dimension', () {
-      final board = GoBoard.fromDimension(5, 4);
-      expect(board.width, 5);
-      expect(board.height, 4);
+    group('creates board from dimension', () {
+      test('with width and height', () {
+        final board = GoBoard.fromDimension(5, 4);
+        expect(board.width, 5);
+        expect(board.height, 4);
+      });
+
+      test('with width', () {
+        final board = GoBoard.fromDimension(5);
+        expect(board.width, 5);
+        expect(board.height, 5);
+      });
     });
   });
 }
