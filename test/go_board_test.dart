@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:golo/golo.dart';
 import 'package:test/test.dart';
+import 'package:collection/collection.dart';
 
 void main() {
   group('GoBoard', () {
@@ -62,6 +65,19 @@ void main() {
         expect(board.has(board.width, 0), false);
         expect(board.has(board.width, board.height), false);
       });
+    });
+
+    test('clear', () {
+      final board = GoBoard.fromDimension(9, 9);
+      board
+          .set(0, 0, GoStone.black)
+          .set(1, 1, GoStone.white)
+          .set(3, 5, GoStone.black);
+      board.clear();
+      expect(
+          DeepCollectionEquality()
+              .equals(board.state, GoBoard.fromDimension(9, 9).state),
+          true);
     });
   });
 }

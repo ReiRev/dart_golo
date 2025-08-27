@@ -26,6 +26,15 @@ class GoBoard {
   GoStone? get(int x, int y) => state[y][x];
   bool has(int x, int y) => 0 <= x && x < width && 0 <= y && y < height;
 
+  GoBoard set(int x, int y, GoStone stone) {
+    state[y][x] = stone;
+    return this;
+  }
+
+  void clear() {
+    state = List.generate(height, (_) => List.generate(width, (_) => null));
+  }
+
   int getCaptures(GoStone player) {
     return _captures[player] ?? 0;
   }
