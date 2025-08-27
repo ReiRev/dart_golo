@@ -46,5 +46,22 @@ void main() {
         expect(board.height, 5);
       });
     });
+
+    group('has', () {
+      test('should return true when vertex is on board', () {
+        final board = GoBoard.fromDimension(19);
+        expect(board.has(0, 0), true);
+        expect(board.has(13, 18), true);
+        expect(board.has(5, 4), true);
+      });
+
+      test('should return false when vertex is not on board', () {
+        final board = GoBoard.fromDimension(19);
+        expect(board.has(-1, -1), false);
+        expect(board.has(5, -1), false);
+        expect(board.has(board.width, 0), false);
+        expect(board.has(board.width, board.height), false);
+      });
+    });
   });
 }

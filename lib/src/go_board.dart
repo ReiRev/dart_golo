@@ -24,6 +24,7 @@ class GoBoard {
   int get width => state[0].length;
 
   GoStone? get(int x, int y) => state[y][x];
+  bool has(int x, int y) => 0 <= x && x < width && 0 <= y && y < height;
 
   int getCaptures(GoStone player) {
     return _captures[player] ?? 0;
