@@ -32,5 +32,11 @@ void main() {
             throwsA(isA<ArgumentError>()));
       });
     });
+
+    test('creates board from dimension', () {
+      final board = GoBoard.fromDimension(5, 4);
+      expect(board.width, 5);
+      expect(board.height, 4);
+    });
   });
 }
