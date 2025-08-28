@@ -26,6 +26,7 @@ class GoBoard {
   GoStone? get(int x, int y) => state[y][x];
   bool has(int x, int y) => 0 <= x && x < width && 0 <= y && y < height;
   bool isSquare() => width == height;
+  bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
   GoBoard set(int x, int y, GoStone stone) {
     state[y][x] = stone;

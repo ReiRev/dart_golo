@@ -138,5 +138,12 @@ void main() {
 
       expect(data.board.isSquare(), true);
     });
+
+    test('isEmpty', () {
+      final board = GoBoard.fromDimension(15, 16);
+      expect(board.isEmpty(), true);
+
+      expect(data.board.isEmpty(), false);
+    });
   });
 }
