@@ -25,10 +25,17 @@ class GoBoard {
 
   GoStone? get(int x, int y) => state[y][x];
   bool has(int x, int y) => 0 <= x && x < width && 0 <= y && y < height;
+  bool isSquare() => width == height;
 
   GoBoard set(int x, int y, GoStone stone) {
     state[y][x] = stone;
     return this;
+  }
+
+  GoBoard makeMove(int x, int y, GoStone stone) {
+    final board = GoBoard(List.generate(
+        height, (y_) => List.generate(width, (x_) => state[y_][x_])));
+    return board.set(x, y, stone);
   }
 
   void clear() {

@@ -1,8 +1,8 @@
-import 'dart:math';
-
+// ignore_for_file: lines_longer_than_80_chars
 import 'package:golo/golo.dart';
 import 'package:test/test.dart';
 import 'package:collection/collection.dart';
+import './data.dart' as data;
 
 void main() {
   group('GoBoard', () {
@@ -78,6 +78,65 @@ void main() {
           DeepCollectionEquality()
               .equals(board.state, GoBoard.fromDimension(9, 9).state),
           true);
+    });
+
+    //   group('makeMove', () {
+    //     test('should not mutate board', () {
+    //       final board = GoBoard.fromDimension(19);
+    //       board.makeMove(5, 5, GoStone.black);
+
+    //       expect(
+    //           DeepCollectionEquality()
+    //               .equals(board.state, GoBoard.fromDimension(19).state),
+    //           true);
+    //     });
+
+    //     test('should make a move', () {
+    //       final board = GoBoard.fromDimension(19);
+    //       final move = board.makeMove(5, 5, GoStone.black);
+    //       board.set(5, 5, GoStone.black);
+
+    //       expect(DeepCollectionEquality().equals(board.state, move.state), true);
+    //     });
+
+    //     test('should remove captured stones', () {
+    //       final board = GoBoard.fromDimension(19);
+    //       const black = [
+    //         [0, 1],
+    //         [GoStone.black, 0],
+    //         [GoStone.black, 2],
+    //         [2, 0],
+    //         [2, 2]
+    //       ];
+    //       const white = [
+    //         [GoStone.black, 1],
+    //         [2, 1]
+    //       ];
+
+    //       for (var xy in black) {
+    //         board.set(xy[0], xy[1], GoStone.black);
+    //       }
+    //       for (var xy in white) {
+    //         board.set(xy[0], xy[1], GoStone.white);
+    //       }
+
+    //       final move = board.makeMove(3, GoStone.black, GoStone.black);
+
+    //       expect(move.get(3, 1), GoStone.black);
+    //       for (var xy in black) {
+    //         expect(move.get(xy[0], xy[1]), GoStone.black);
+    //       }
+    //       for (var xy in white) {
+    //         expect(move.get(xy[0], xy[1]), null);
+    //       }
+    //     });
+    //   });
+
+    test('isSquare', () {
+      final board = GoBoard.fromDimension(15, 16);
+      expect(board.isSquare(), false);
+
+      expect(data.board.isSquare(), true);
     });
   });
 }
