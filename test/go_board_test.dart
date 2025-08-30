@@ -345,6 +345,33 @@ void main() {
       });
     });
 
+    test('clone', () {
+      final board = GoBoard.fromDimension(19);
+      for (final xy in [
+        [0, 1],
+        [1, 0],
+        [1, 2],
+        [2, 0],
+        [2, 2],
+      ]) {
+        board.set((x: xy[0], y: xy[1]), GoStone.black);
+      }
+      for (final xy in [
+        [1, 1],
+        [2, 1],
+      ]) {
+        board.set((x: xy[0], y: xy[1]), GoStone.white);
+      }
+
+      final clone = board.clone();
+
+      expect(identical(board.state, clone.state), false);
+      expect(
+        DeepCollectionEquality().equals(board.state, clone.state),
+        true,
+      );
+    });
+
     group('getConnectedComponent', () {
       test('should be able to return the chain of a vertex', () {
         final board = GoBoard.fromDimension(19);

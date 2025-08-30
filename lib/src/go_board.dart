@@ -5,9 +5,12 @@ enum GoStone {
 
 typedef Vertex = ({int x, int y});
 
+typedef KoInfo = ({GoStone stone, Vertex vertex});
+
 class GoBoard {
   List<List<GoStone?>> state;
   final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
+  KoInfo? _koInfo;
 
   GoBoard(this.state) {
     final int rowLength = state[0].length;
@@ -47,6 +50,11 @@ class GoBoard {
 
   int getCaptures(GoStone player) {
     return _captures[player] ?? 0;
+  }
+
+  GoBoard setCaptures(GoStone stone, int value) {
+    _captures[stone] = value;
+    return this;
   }
 
   List<Vertex> getChain(Vertex vertex) {
@@ -157,5 +165,18 @@ class GoBoard {
     );
 
     return area.where((v) => get(v) == stone).toList();
+  }
+
+  GoBoard clone() {
+    final copied = List<List<GoStone?>>.generate(
+      height,
+      (y) => List<GoStone?>.from(state[y]),
+      growable: false,
+    );
+    final result = GoBoard(copied)
+        .setCaptures(GoStone.black, getCaptures(GoStone.black))
+        .setCaptures(GoStone.white, getCaptures(GoStone.white));
+    result._koInfo = _koInfo;
+    return result;
   }
 }
