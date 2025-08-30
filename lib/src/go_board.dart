@@ -1,6 +1,6 @@
 import 'dart:math';
 
-enum GoStone {
+enum Stone {
   black,
   white,
 }
@@ -15,14 +15,14 @@ extension VertexExt on Vertex {
   }
 }
 
-typedef KoInfo = ({GoStone stone, Vertex vertex});
+typedef KoInfo = ({Stone stone, Vertex vertex});
 
 enum IllegalMoveReason { overwrite, ko, suicide }
 
 class IllegalMoveException implements Exception {
   final IllegalMoveReason reason;
   final Vertex vertex;
-  final GoStone stone;
+  final Stone stone;
   const IllegalMoveException(this.reason,
       {required this.vertex, required this.stone});
   @override
@@ -30,13 +30,13 @@ class IllegalMoveException implements Exception {
       'IllegalMoveException(${reason.name} at ${vertex.x},${vertex.y} by $stone)';
 }
 
-class GoBoard {
-  List<List<GoStone?>> state;
-  final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
+class Board {
+  List<List<Stone?>> state;
+  final Map<Stone, int> _captures = {Stone.black: 0, Stone.white: 0};
   KoInfo? _koInfo;
   static const alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 
-  GoBoard(this.state, {Map<GoStone, int>? captures, KoInfo? koInfo}) {
+  Board(this.state, {Map<Stone, int>? captures, KoInfo? koInfo}) {
     final int rowLength = state[0].length;
     for (final row in state) {
       if (row.length != rowLength) {
@@ -45,8 +45,8 @@ class GoBoard {
     }
 
     if (captures != null) {
-      _captures[GoStone.black] = captures[GoStone.black] ?? 0;
-      _captures[GoStone.white] = captures[GoStone.white] ?? 0;
+      _captures[Stone.black] = captures[Stone.black] ?? 0;
+      _captures[Stone.white] = captures[Stone.white] ?? 0;
     }
 
     if (koInfo != null) {
@@ -54,26 +54,27 @@ class GoBoard {
     }
   }
 
-  GoBoard.fromDimension(int width, [int? height])
+  Board.fromDimension(int width, [int? height])
       : this(List.generate(
             height ?? width, (_) => List.generate(width, (_) => null)));
 
   int get height => state.length;
   int get width => state[0].length;
 
-  GoStone? get(Vertex v) => has(v) ? state[v.y][v.x] : null;
-  bool has(Vertex v) => 0 <= v.x && v.x < width && 0 <= v.y && v.y < height;
+  Stone? get(Vertex vertex) => has(vertex) ? state[vertex.y][vertex.x] : null;
+  bool has(Vertex vertex) =>
+      0 <= vertex.x && vertex.x < width && 0 <= vertex.y && vertex.y < height;
   bool isSquare() => width == height;
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
-  GoBoard set(Vertex v, GoStone? stone) {
-    state[v.y][v.x] = stone;
+  Board set(Vertex vertex, Stone? stone) {
+    state[vertex.y][vertex.x] = stone;
     return this;
   }
 
-  GoBoard makeMove(
+  Board makeMove(
     Vertex vertex,
-    GoStone stone, {
+    Stone stone, {
     bool preventSuicide = false,
     bool preventOverwrite = false,
     bool preventKo = false,
@@ -99,7 +100,7 @@ class GoBoard {
 
     move.set(vertex, stone);
 
-    final other = stone == GoStone.black ? GoStone.white : GoStone.black;
+    final other = stone == Stone.black ? Stone.white : Stone.black;
     final neighbors = move.getNeighbors(vertex);
     final deadStones = <Vertex>[];
     final deadNeighbors = neighbors.where(
@@ -150,59 +151,59 @@ class GoBoard {
     state = List.generate(height, (_) => List.generate(width, (_) => null));
   }
 
-  int getCaptures(GoStone player) {
+  int getCaptures(Stone player) {
     return _captures[player] ?? 0;
   }
 
-  GoBoard setCaptures(GoStone stone, int value) {
+  Board setCaptures(Stone stone, int value) {
     _captures[stone] = value;
     return this;
   }
 
   List<Vertex> getChain(Vertex vertex) {
     final stone = get(vertex);
-    return getConnectedComponent(vertex, (v) => get(v) == stone);
+    return getConnectedComponent(vertex, (vertex) => get(vertex) == stone);
   }
 
-  List<Vertex> getNeighbors(Vertex v) {
-    if (!has(v)) {
+  List<Vertex> getNeighbors(Vertex vertex) {
+    if (!has(vertex)) {
       return [];
     }
-    final x = v.x;
-    final y = v.y;
+    final x = vertex.x;
+    final y = vertex.y;
     return [
       (x: x - 1, y: y),
       (x: x + 1, y: y),
       (x: x, y: y - 1),
       (x: x, y: y + 1)
-    ].where((v) => has(v)).toList();
+    ].where((vertex) => has(vertex)).toList();
   }
 
   List<Vertex> getConnectedComponent(
     Vertex vertex,
-    bool Function(Vertex v) predicate, [
+    bool Function(Vertex vertex) predicate, [
     List<Vertex>? result,
   ]) {
     if (!has(vertex)) return [];
     result ??= [vertex];
 
     // Recursive depth-first search
-    for (final v in getNeighbors(vertex)) {
-      if (!predicate(v)) continue;
-      final already = result.any((w) => w.x == v.x && w.y == v.y);
+    for (final vertex in getNeighbors(vertex)) {
+      if (!predicate(vertex)) continue;
+      final already = result.any((w) => w.x == vertex.x && w.y == vertex.y);
       if (already) continue;
 
-      result.add(v);
-      getConnectedComponent(v, predicate, result);
+      result.add(vertex);
+      getConnectedComponent(vertex, predicate, result);
     }
 
     return result;
   }
 
-  List<Vertex> getLiberties(Vertex v) {
-    if (!has(v) || get(v) == null) return [];
+  List<Vertex> getLiberties(Vertex vertex) {
+    if (!has(vertex) || get(vertex) == null) return [];
 
-    final chain = getChain(v);
+    final chain = getChain(vertex);
     final Set<Vertex> liberties = {};
     for (final c in chain) {
       for (final nv in getNeighbors(c)) {
@@ -219,17 +220,17 @@ class GoBoard {
     return (v1.x - v2.x).abs() + (v1.y - v2.y).abs();
   }
 
-  bool hasLiberties(Vertex v, [Map<Vertex, bool>? visited]) {
-    final stone = get(v);
-    if (!has(v) || stone == null) return false;
+  bool hasLiberties(Vertex vertex, [Map<Vertex, bool>? visited]) {
+    final stone = get(vertex);
+    if (!has(vertex) || stone == null) return false;
 
     visited ??= <Vertex, bool>{};
-    if (visited.containsKey(v)) return false;
+    if (visited.containsKey(vertex)) return false;
 
-    final neighbors = getNeighbors(v);
+    final neighbors = getNeighbors(vertex);
     if (neighbors.any((n) => get(n) == null)) return true;
 
-    visited[v] = true;
+    visited[vertex] = true;
 
     return neighbors
         .where((n) => get(n) == stone)
@@ -241,12 +242,12 @@ class GoBoard {
 
     for (var x = 0; x < width; x++) {
       for (var y = 0; y < height; y++) {
-        final v = (x: x, y: y);
-        if (get(v) == null || liberties.containsKey(v)) continue;
-        if (!hasLiberties(v)) return false;
+        final vertex = (x: x, y: y);
+        if (get(vertex) == null || liberties.containsKey(vertex)) continue;
+        if (!hasLiberties(vertex)) return false;
 
-        for (final v in getChain(v)) {
-          liberties[v] = true;
+        for (final vertex in getChain(vertex)) {
+          liberties[vertex] = true;
         }
       }
     }
@@ -260,31 +261,31 @@ class GoBoard {
     final stone = get(vertex);
     final area = getConnectedComponent(
       vertex,
-      (v) {
-        final s = get(v);
+      (vertex) {
+        final s = get(vertex);
         return s == stone || s == null;
       },
     );
 
-    return area.where((v) => get(v) == stone).toList();
+    return area.where((vertex) => get(vertex) == stone).toList();
   }
 
-  GoBoard copyWith({
-    List<List<GoStone?>>? state,
-    Map<GoStone, int>? captures,
+  Board copyWith({
+    List<List<Stone?>>? state,
+    Map<Stone, int>? captures,
     KoInfo? koInfo,
   }) {
-    return GoBoard(
-      state?.map((r) => List<GoStone?>.from(r)).toList(growable: false) ??
-          this.state.map((r) => List<GoStone?>.from(r)).toList(growable: false),
+    return Board(
+      state?.map((r) => List<Stone?>.from(r)).toList(growable: false) ??
+          this.state.map((r) => List<Stone?>.from(r)).toList(growable: false),
       captures: {...(captures ?? _captures)},
       koInfo: koInfo ?? _koInfo,
     );
   }
 
-  GoBoard clone() => copyWith();
+  Board clone() => copyWith();
 
-  List<Vertex>? diff(GoBoard board) {
+  List<Vertex>? diff(Board board) {
     if (board.width != width || board.height != height) {
       return null;
     }
@@ -354,9 +355,9 @@ class GoBoard {
     return result.take(count).toList();
   }
 
-  String stringifyVertex(Vertex v) {
-    if (!has(v)) return '';
-    return '${alpha[v.x]}${height - v.y}';
+  String stringifyVertex(Vertex vertex) {
+    if (!has(vertex)) return '';
+    return '${alpha[vertex.x]}${height - vertex.y}';
   }
 
   Vertex? parseVertex(String coord) {
@@ -365,8 +366,8 @@ class GoBoard {
     final n = int.tryParse(coord.substring(1));
     if (n == null) return null;
     final y = height - n;
-    final v = (x: x, y: y);
-    return has(v) ? v : null;
+    final vertex = (x: x, y: y);
+    return has(vertex) ? vertex : null;
   }
 
   @override
@@ -374,9 +375,9 @@ class GoBoard {
     final buf = StringBuffer();
     final labelWidth = height.toString().length;
     String padLeft(String s, int w) => s.padLeft(w);
-    String cellSymbol(GoStone? s) {
+    String cellSymbol(Stone? s) {
       if (s == null) return '.';
-      return s == GoStone.black ? 'X' : 'O';
+      return s == Stone.black ? 'X' : 'O';
     }
 
     final header = StringBuffer();
