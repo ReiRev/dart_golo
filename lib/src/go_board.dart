@@ -7,14 +7,6 @@ enum Stone {
 
 typedef Vertex = ({int x, int y});
 
-extension VertexExt on Vertex {
-  String toGoString(int size) {
-    if (x < 0 || y < 0 || x >= size || y >= size) return '';
-    const letters = 'ABCDEFGHJKLMNOPQRST';
-    return '${letters[x]}${size - y}';
-  }
-}
-
 typedef KoInfo = ({Stone stone, Vertex vertex});
 
 enum IllegalMoveReason { overwrite, ko, suicide, outOfBoard }
@@ -37,9 +29,14 @@ class Board {
   static const alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 
   Board(this.state, {Map<Stone, int>? captures, KoInfo? koInfo}) {
-    final int rowLength = state[0].length;
+    final int height = state.length;
+    final int width = state[0].length;
+    if (height > alpha.length || width > alpha.length) {
+      throw ArgumentError(
+          'width or height must not be greater than ${alpha.length}');
+    }
     for (final row in state) {
-      if (row.length != rowLength) {
+      if (row.length != width) {
         throw ArgumentError('All rows must have the same length');
       }
     }
@@ -198,13 +195,13 @@ class Board {
     result ??= [vertex];
 
     // Recursive depth-first search
-    for (final vertex in getNeighbors(vertex)) {
-      if (!predicate(vertex)) continue;
-      final already = result.any((w) => w.x == vertex.x && w.y == vertex.y);
+    for (final vertex_ in getNeighbors(vertex)) {
+      if (!predicate(vertex_)) continue;
+      final already = result.any((w) => w.x == vertex_.x && w.y == vertex_.y);
       if (already) continue;
 
-      result.add(vertex);
-      getConnectedComponent(vertex, predicate, result);
+      result.add(vertex_);
+      getConnectedComponent(vertex_, predicate, result);
     }
 
     return result;
