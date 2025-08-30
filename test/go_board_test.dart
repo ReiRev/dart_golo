@@ -260,35 +260,73 @@ void main() {
     });
 
     group('getConnectedComponent', () {
-      // test('should be able to return the chain of a vertex', () {
-      //   final board = GoBoard.fromDimension(19);
-      //   for (var xy in [
-      //     [0, 1],
-      //     [1, 0],
-      //     [1, 2],
-      //     [2, 0],
-      //     [2, 2],
-      //   ]) {
-      //     board.set((x: xy[0], y: xy[1]), GoStone.black);
-      //   }
-      //   for (var xy in [
-      //     [1, 1],
-      //     [2, 1],
-      //   ]) {
-      //     board.set((x: xy[0], y: xy[1]), GoStone.white);
-      //   }
+      test('should be able to return the chain of a vertex', () {
+        final board = GoBoard.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.white);
+        }
 
-      //   expect(
-      //     UnorderedIterableEquality().equals(
-      //       board.getConnectedComponent(
-      //         (x: 1, y: 1),
-      //         (v) => board.get(v) == GoStone.white,
-      //       ),
-      //       [(x: 1, y: 1), (x: 2, y: 1)],
-      //     ),
-      //     true,
-      //   );
-      // });
+        expect(
+          UnorderedIterableEquality().equals(
+            board.getConnectedComponent(
+              (x: 1, y: 1),
+              (v) => board.get(v) == GoStone.white,
+            ),
+            [(x: 1, y: 1), (x: 2, y: 1)],
+          ),
+          true,
+        );
+      });
+
+      test('should be able to return the stone connected component of a vertex', () {
+        final board = GoBoard.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.white);
+        }
+
+        expect(
+          UnorderedIterableEquality().equals(
+            board.getConnectedComponent(
+              (x: 1, y: 1),
+              (v) => board.get(v) != null,
+            ),
+            [
+              (x: 0, y: 1),
+              (x: 1, y: 0),
+              (x: 1, y: 1),
+              (x: 1, y: 2),
+              (x: 2, y: 0),
+              (x: 2, y: 1),
+              (x: 2, y: 2),
+            ],
+          ),
+          true,
+        );
+      });
     });
 
     group('(has|get)Liberties', () {

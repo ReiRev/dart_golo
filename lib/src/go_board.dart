@@ -68,10 +68,24 @@ class GoBoard {
   }
 
   List<Vertex> getConnectedComponent(
-    Vertex v,
-    bool Function(Vertex v) predicate,
-  ) {
-    return [];
+    Vertex vertex,
+    bool Function(Vertex v) predicate, [
+    List<Vertex>? result,
+  ]) {
+    if (!has(vertex)) return [];
+    result ??= [vertex];
+
+    // Recursive depth-first search
+    for (final v in getNeighbors(vertex)) {
+      if (!predicate(v)) continue;
+      final already = result.any((w) => w.x == v.x && w.y == v.y);
+      if (already) continue;
+
+      result.add(v);
+      getConnectedComponent(v, predicate, result);
+    }
+
+    return result;
   }
 
   List<Vertex> getLiberties(Vertex v) {
