@@ -131,4 +131,19 @@ class GoBoard {
 
     return true;
   }
+
+  List<Vertex> getRelatedChains(Vertex vertex) {
+    if (!has(vertex) || get(vertex) == null) return [];
+
+    final stone = get(vertex);
+    final area = getConnectedComponent(
+      vertex,
+      (v) {
+        final s = get(v);
+        return s == stone || s == null;
+      },
+    );
+
+    return area.where((v) => get(v) == stone).toList();
+  }
 }
