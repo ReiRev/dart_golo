@@ -12,12 +12,21 @@ class GoBoard {
   final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
   KoInfo? _koInfo;
 
-  GoBoard(this.state) {
+  GoBoard(this.state, {Map<GoStone, int>? captures, KoInfo? koInfo}) {
     final int rowLength = state[0].length;
     for (final row in state) {
       if (row.length != rowLength) {
         throw ArgumentError('All rows must have the same length');
       }
+    }
+
+    if (captures != null) {
+      _captures[GoStone.black] = captures[GoStone.black] ?? 0;
+      _captures[GoStone.white] = captures[GoStone.white] ?? 0;
+    }
+
+    if (koInfo != null) {
+      _koInfo = koInfo;
     }
   }
 
@@ -167,16 +176,18 @@ class GoBoard {
     return area.where((v) => get(v) == stone).toList();
   }
 
-  GoBoard clone() {
-    final copied = List<List<GoStone?>>.generate(
-      height,
-      (y) => List<GoStone?>.from(state[y]),
-      growable: false,
+  GoBoard copyWith({
+    List<List<GoStone?>>? state,
+    Map<GoStone, int>? captures,
+    KoInfo? koInfo,
+  }) {
+    return GoBoard(
+      state?.map((r) => List<GoStone?>.from(r)).toList(growable: false) ??
+          this.state.map((r) => List<GoStone?>.from(r)).toList(growable: false),
+      captures: {...(captures ?? _captures)},
+      koInfo: koInfo ?? _koInfo,
     );
-    final result = GoBoard(copied)
-        .setCaptures(GoStone.black, getCaptures(GoStone.black))
-        .setCaptures(GoStone.white, getCaptures(GoStone.white));
-    result._koInfo = _koInfo;
-    return result;
   }
+
+  GoBoard clone() => copyWith();
 }
