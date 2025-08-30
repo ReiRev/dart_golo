@@ -220,4 +220,14 @@ class GoBoard {
     if (!has(v)) return '';
     return '${alpha[v.x]}${height - v.y}';
   }
+
+  Vertex? parseVertex(String coord) {
+    if (coord.length < 2) return null;
+    final x = alpha.indexOf(coord[0].toUpperCase());
+    final n = int.tryParse(coord.substring(1));
+    if (n == null) return null;
+    final y = height - n;
+    final v = (x: x, y: y);
+    return has(v) ? v : null;
+  }
 }

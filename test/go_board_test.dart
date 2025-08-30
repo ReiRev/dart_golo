@@ -358,6 +358,17 @@ void main() {
       });
     });
 
+    group('parseVertex', () {
+      test('should parse Go coordinates to vertex', () {
+        expect(data.board.parseVertex('d16'), (x: 3, y: 3));
+        expect(data.board.parseVertex('R5'), (x: 16, y: 14));
+        expect(data.board.parseVertex('R'), null);
+        expect(data.board.parseVertex('Z3'), null);
+        expect(data.board.parseVertex('pass'), null);
+        expect(data.board.parseVertex(''), null);
+      });
+    });
+
     group('getNeighbors', () {
       test('should return neighbors for vertices in the middle', () {
         final board = GoBoard.fromDimension(19);
