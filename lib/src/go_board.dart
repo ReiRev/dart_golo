@@ -190,4 +190,20 @@ class GoBoard {
   }
 
   GoBoard clone() => copyWith();
+
+  List<Vertex>? diff(GoBoard board) {
+    if (board.width != width || board.height != height) {
+      return null;
+    }
+
+    final result = <Vertex>[];
+    for (var x = 0; x < width; x++) {
+      for (var y = 0; y < height; y++) {
+        final other = board.get((x: x, y: y));
+        if (get((x: x, y: y)) == other) continue;
+        result.add((x: x, y: y));
+      }
+    }
+    return result;
+  }
 }

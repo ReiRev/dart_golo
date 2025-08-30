@@ -287,6 +287,73 @@ void main() {
       });
     });
 
+    group('diff', () {
+      test('should compute differences between boards', () {
+        final board1 = GoBoard.fromDimension(9, 9);
+        final board2 = board1.makeMove((x: 3, y: 3), GoStone.black).set(
+            (x: 4, y: 4), GoStone.black).set((x: 3, y: 4), GoStone.black);
+
+        // Symmetry
+        expect(
+          DeepCollectionEquality().equals(
+            board1.diff(board2),
+            board2.diff(board1),
+          ),
+          true,
+        );
+
+        // Exact set of changed vertices
+        final expected = [
+          (x: 3, y: 3),
+          (x: 3, y: 4),
+          (x: 4, y: 4),
+        ];
+        expect(
+          UnorderedIterableEquality().equals(board1.diff(board2), expected),
+          true,
+        );
+
+        final board3 = GoBoard.fromDimension(8, 9);
+        // Different dimensions: should be symmetric and null
+        expect(board1.diff(board3), board3.diff(board1));
+        expect(board1.diff(board3), null);
+      });
+    });
+
+    group('diff', () {
+      test('should compute differences between boards', () {
+        final board1 = GoBoard.fromDimension(9, 9);
+        final board2 = board1.makeMove((x: 3, y: 3), GoStone.black).set(
+            (x: 4, y: 4), GoStone.black).set((x: 3, y: 4), GoStone.black);
+
+        // Symmetry
+        expect(
+          DeepCollectionEquality().equals(
+            board1.diff(board2),
+            board2.diff(board1),
+          ),
+          true,
+        );
+
+        expect(
+          UnorderedIterableEquality().equals(
+            board1.diff(board2),
+            [
+              (x: 3, y: 3),
+              (x: 3, y: 4),
+              (x: 4, y: 4),
+            ],
+          ),
+          true,
+        );
+
+        final board3 = GoBoard.fromDimension(8, 9);
+        // Different dimensions: should be symmetric and null
+        expect(board1.diff(board3), board3.diff(board1));
+        expect(board1.diff(board3), null);
+      });
+    });
+
     group('getNeighbors', () {
       test('should return neighbors for vertices in the middle', () {
         final board = GoBoard.fromDimension(19);
