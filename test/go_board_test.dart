@@ -193,6 +193,14 @@ void main() {
       });
     });
 
+    group('getDistance', () {
+      test('should compute Manhattan distance', () {
+        final board = GoBoard.fromDimension(19);
+        expect(board.getDistance((x: 1, y: 2), (x: 8, y: 4)), 9);
+        expect(board.getDistance((x: -1, y: -2), (x: 8, y: 4)), 15);
+      });
+    });
+
     group('getNeighbors', () {
       test('should return neighbors for vertices in the middle', () {
         final board = GoBoard.fromDimension(19);

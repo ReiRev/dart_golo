@@ -79,11 +79,14 @@ class GoBoard {
     return [];
   }
 
+  int getDistance(Vertex v1, Vertex v2) {
+    return (v1.x - v2.x).abs() + (v1.y - v2.y).abs();
+  }
+
   bool hasLiberties(Vertex v, [Map<Vertex, bool>? visited]) {
     final stone = get(v);
     if (!has(v) || stone == null) return false;
 
-    final key = '${v.x},${v.y}';
     visited ??= <Vertex, bool>{};
     if (visited.containsKey(v)) return false;
 
