@@ -17,7 +17,7 @@ extension VertexExt on Vertex {
 
 typedef KoInfo = ({Stone stone, Vertex vertex});
 
-enum IllegalMoveReason { overwrite, ko, suicide }
+enum IllegalMoveReason { overwrite, ko, suicide, outOfBoard }
 
 class IllegalMoveException implements Exception {
   final IllegalMoveReason reason;
@@ -75,12 +75,22 @@ class Board {
   Board makeMove(
     Vertex vertex,
     Stone stone, {
+    bool preventOutOfBoard = false,
     bool preventSuicide = false,
     bool preventOverwrite = false,
     bool preventKo = false,
   }) {
     final move = clone();
-    if (!has(vertex)) return move;
+    if (!has(vertex)) {
+      if (preventOutOfBoard) {
+        throw IllegalMoveException(
+          IllegalMoveReason.outOfBoard,
+          vertex: vertex,
+          stone: stone,
+        );
+      }
+      return move;
+    }
 
     if (preventOverwrite && move.get(vertex) != null) {
       throw IllegalMoveException(

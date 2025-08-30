@@ -87,6 +87,53 @@ void main() {
     });
 
     group('makeMove', () {
+      test('should throw error for moves outside the board', () {
+        final board = Board.fromDimension(19);
+        expect(
+          () => board
+              .makeMove((x: -1, y: 0), Stone.black, preventOutOfBoard: true),
+          throwsA(
+            isA<IllegalMoveException>().having(
+              (e) => e.reason,
+              'reason',
+              IllegalMoveReason.outOfBoard,
+            ),
+          ),
+        );
+        expect(
+          () => board
+              .makeMove((x: 19, y: 0), Stone.white, preventOutOfBoard: true),
+          throwsA(
+            isA<IllegalMoveException>().having(
+              (e) => e.reason,
+              'reason',
+              IllegalMoveReason.outOfBoard,
+            ),
+          ),
+        );
+        expect(
+          () => board
+              .makeMove((x: 0, y: -1), Stone.black, preventOutOfBoard: true),
+          throwsA(
+            isA<IllegalMoveException>().having(
+              (e) => e.reason,
+              'reason',
+              IllegalMoveReason.outOfBoard,
+            ),
+          ),
+        );
+        expect(
+          () => board
+              .makeMove((x: 0, y: 19), Stone.white, preventOutOfBoard: true),
+          throwsA(
+            isA<IllegalMoveException>().having(
+              (e) => e.reason,
+              'reason',
+              IllegalMoveReason.outOfBoard,
+            ),
+          ),
+        );
+      });
       test('should not mutate board', () {
         final board = Board.fromDimension(19);
         board.makeMove((x: 5, y: 5), Stone.black);
