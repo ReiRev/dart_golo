@@ -17,6 +17,19 @@ extension VertexExt on Vertex {
 
 typedef KoInfo = ({GoStone stone, Vertex vertex});
 
+enum IllegalMoveReason { overwrite, ko, suicide }
+
+class IllegalMoveException implements Exception {
+  final IllegalMoveReason reason;
+  final Vertex vertex;
+  final GoStone stone;
+  const IllegalMoveException(this.reason,
+      {required this.vertex, required this.stone});
+  @override
+  String toString() =>
+      'IllegalMoveException(${reason.name} at ${vertex.x},${vertex.y} by $stone)';
+}
+
 class GoBoard {
   List<List<GoStone?>> state;
   final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
@@ -53,15 +66,84 @@ class GoBoard {
   bool isSquare() => width == height;
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
-  GoBoard set(Vertex v, GoStone stone) {
+  GoBoard set(Vertex v, GoStone? stone) {
     state[v.y][v.x] = stone;
     return this;
   }
 
-  GoBoard makeMove(Vertex v, GoStone stone) {
-    final board = GoBoard(List.generate(
-        height, (y_) => List.generate(width, (x_) => state[y_][x_])));
-    return board.set(v, stone);
+  GoBoard makeMove(
+    Vertex vertex,
+    GoStone stone, {
+    bool preventSuicide = false,
+    bool preventOverwrite = false,
+    bool preventKo = false,
+  }) {
+    final move = clone();
+    if (!has(vertex)) return move;
+
+    if (preventOverwrite && move.get(vertex) != null) {
+      throw IllegalMoveException(
+        IllegalMoveReason.overwrite,
+        vertex: vertex,
+        stone: stone,
+      );
+    }
+
+    if (preventKo && _koInfo?.stone == stone && _koInfo?.vertex == vertex) {
+      throw IllegalMoveException(
+        IllegalMoveReason.ko,
+        vertex: vertex,
+        stone: stone,
+      );
+    }
+
+    move.set(vertex, stone);
+
+    final other = stone == GoStone.black ? GoStone.white : GoStone.black;
+    final neighbors = move.getNeighbors(vertex);
+    final deadStones = <Vertex>[];
+    final deadNeighbors = neighbors.where(
+      (n) => move.get(n) == other && !move.hasLiberties(n),
+    );
+
+    for (final n in deadNeighbors) {
+      if (move.get(n) == null) continue;
+
+      final chain = move.getChain(n);
+      for (final c in chain) {
+        move.state[c.y][c.x] = null;
+        move.setCaptures(stone, move.getCaptures(stone) + 1);
+        deadStones.add(c);
+      }
+    }
+
+    final liberties = move.getLiberties(vertex);
+    final hasKo = deadStones.length == 1 &&
+        liberties.length == 1 &&
+        liberties[0] == deadStones[0] &&
+        neighbors.every((n) => move.get(n) != stone);
+
+    move._koInfo = hasKo ? (stone: other, vertex: deadStones[0]) : null;
+
+    if (deadStones.isEmpty && liberties.isEmpty) {
+      if (preventSuicide) {
+        throw IllegalMoveException(
+          IllegalMoveReason.suicide,
+          vertex: vertex,
+          stone: stone,
+        );
+      }
+
+      final chain = move.getChain(vertex);
+      for (final c in chain) {
+        move.set(c, null).setCaptures(
+              other,
+              getCaptures(other),
+            );
+      }
+    }
+
+    return move;
   }
 
   void clear() {
@@ -285,5 +367,44 @@ class GoBoard {
     final y = height - n;
     final v = (x: x, y: y);
     return has(v) ? v : null;
+  }
+
+  @override
+  String toString() {
+    final buf = StringBuffer();
+    final labelWidth = height.toString().length;
+    String padLeft(String s, int w) => s.padLeft(w);
+    String cellSymbol(GoStone? s) {
+      if (s == null) return '.';
+      return s == GoStone.black ? 'X' : 'O';
+    }
+
+    final header = StringBuffer();
+    header.write(' '.padLeft(labelWidth + 1));
+    if (width <= alpha.length) {
+      for (var x = 0; x < width; x++) {
+        header.write(alpha[x]);
+        if (x != width - 1) header.write(' ');
+      }
+    } else {
+      for (var x = 1; x <= width; x++) {
+        header.write((x % 10).toString());
+        if (x != width) header.write(' ');
+      }
+    }
+    buf.writeln(header.toString());
+    for (var y = 0; y < height; y++) {
+      final rowLabel = (y + 1).toString();
+      buf.write(padLeft(rowLabel, labelWidth));
+      buf.write(' ');
+      for (var x = 0; x < width; x++) {
+        buf.write(cellSymbol(state[y][x]));
+        if (x != width - 1) buf.write(' ');
+      }
+      buf.write(' ');
+      buf.writeln(rowLabel);
+    }
+    buf.writeln(header.toString());
+    return buf.toString();
   }
 }

@@ -86,58 +86,6 @@ void main() {
           true);
     });
 
-    //   group('makeMove', () {
-    //     test('should not mutate board', () {
-    //       final board = GoBoard.fromDimension(19);
-    //       board.makeMove(5, 5, GoStone.black);
-
-    //       expect(
-    //           DeepCollectionEquality()
-    //               .equals(board.state, GoBoard.fromDimension(19).state),
-    //           true);
-    //     });
-
-    //     test('should make a move', () {
-    //       final board = GoBoard.fromDimension(19);
-    //       final move = board.makeMove(5, 5, GoStone.black);
-    //       board.set(5, 5, GoStone.black);
-
-    //       expect(DeepCollectionEquality().equals(board.state, move.state), true);
-    //     });
-
-    //     test('should remove captured stones', () {
-    //       final board = GoBoard.fromDimension(19);
-    //       const black = [
-    //         [0, 1],
-    //         [GoStone.black, 0],
-    //         [GoStone.black, 2],
-    //         [2, 0],
-    //         [2, 2]
-    //       ];
-    //       const white = [
-    //         [GoStone.black, 1],
-    //         [2, 1]
-    //       ];
-
-    //       for (var xy in black) {
-    //         board.set(xy[0], xy[1], GoStone.black);
-    //       }
-    //       for (var xy in white) {
-    //         board.set(xy[0], xy[1], GoStone.white);
-    //       }
-
-    //       final move = board.makeMove(3, GoStone.black, GoStone.black);
-
-    //       expect(move.get(3, 1), GoStone.black);
-    //       for (var xy in black) {
-    //         expect(move.get(xy[0], xy[1]), GoStone.black);
-    //       }
-    //       for (var xy in white) {
-    //         expect(move.get(xy[0], xy[1]), null);
-    //       }
-    //     });
-    //   });
-
     test('isSquare', () {
       final board = GoBoard.fromDimension(15, 16);
       expect(board.isSquare(), false);
@@ -198,6 +146,206 @@ void main() {
         final board = GoBoard.fromDimension(19);
         expect(board.getDistance((x: 1, y: 2), (x: 8, y: 4)), 9);
         expect(board.getDistance((x: -1, y: -2), (x: 8, y: 4)), 15);
+      });
+    });
+
+    group('makeMove', () {
+      test('should not mutate board', () {
+        final board = GoBoard.fromDimension(19);
+        board.makeMove((x: 5, y: 5), GoStone.black);
+
+        expect(
+          DeepCollectionEquality()
+              .equals(board.state, GoBoard.fromDimension(19).state),
+          true,
+        );
+      });
+
+      test('should make a move', () {
+        final board = GoBoard.fromDimension(19);
+        final move = board.makeMove((x: 5, y: 5), GoStone.black);
+        board.set((x: 5, y: 5), GoStone.black);
+
+        expect(
+          DeepCollectionEquality().equals(board.state, move.state),
+          true,
+        );
+      });
+
+      test('should remove captured stones', () {
+        var board = GoBoard.fromDimension(19);
+        final black = [
+          (x: 0, y: 1),
+          (x: 1, y: 0),
+          (x: 1, y: 2),
+          (x: 2, y: 0),
+          (x: 2, y: 2),
+        ];
+        final white = [
+          (x: 1, y: 1),
+          (x: 2, y: 1),
+        ];
+        for (final v in black) {
+          board.set(v, GoStone.black);
+        }
+        for (final v in white) {
+          board.set(v, GoStone.white);
+        }
+
+        final move = board.makeMove((x: 3, y: 1), GoStone.black);
+
+        expect(move.get((x: 3, y: 1)), GoStone.black);
+        for (final v in black) {
+          expect(move.get(v), GoStone.black);
+        }
+        for (final v in white) {
+          expect(move.get(v), null);
+        }
+
+        board = GoBoard.fromDimension(19);
+        board.set((x: 0, y: 1), GoStone.black).set((x: 0, y: 0), GoStone.white);
+        final move2 = board.makeMove((x: 1, y: 0), GoStone.black);
+        expect(move2.get((x: 0, y: 0)), null);
+        expect(move2.get((x: 1, y: 0)), GoStone.black);
+        expect(move2.get((x: 0, y: 1)), GoStone.black);
+      });
+
+      test('should count captures correctly', () {
+        var board = GoBoard.fromDimension(19);
+        final black = [
+          (x: 0, y: 1),
+          (x: 1, y: 0),
+          (x: 1, y: 2),
+          (x: 2, y: 0),
+          (x: 2, y: 2),
+        ];
+        final white = [
+          (x: 1, y: 1),
+          (x: 2, y: 1),
+        ];
+        for (final v in black) {
+          board.set(v, GoStone.black);
+        }
+        for (final v in white) {
+          board.set(v, GoStone.white);
+        }
+        final move = board.makeMove((x: 3, y: 1), GoStone.black);
+        expect(move.getCaptures(GoStone.white), 0);
+        expect(move.getCaptures(GoStone.black), white.length);
+
+        board = GoBoard.fromDimension(19);
+        board.set((x: 0, y: 1), GoStone.black).set((x: 0, y: 0), GoStone.white);
+        final move2 = board.makeMove((x: 1, y: 0), GoStone.black);
+        expect(move2.getCaptures(GoStone.white), 0);
+        expect(move2.getCaptures(GoStone.black), 1);
+      });
+
+      test('should handle suicide correctly', () {
+        final board = GoBoard.fromDimension(19);
+        for (final v in [
+          (x: 0, y: 1),
+          (x: 1, y: 0),
+          (x: 1, y: 2),
+          (x: 2, y: 0),
+          (x: 2, y: 2),
+          (x: 3, y: 1),
+        ]) {
+          board.set(v, GoStone.black);
+        }
+        board.set((x: 1, y: 1), GoStone.white);
+        final move = board.makeMove((x: 2, y: 1), GoStone.white);
+        expect(move.get((x: 1, y: 1)), null);
+        expect(move.get((x: 2, y: 1)), null);
+        expect(move.get((x: 3, y: 1)), GoStone.black);
+        expect(move.get((x: 1, y: 2)), GoStone.black);
+      });
+
+      test('should prevent suicide if desired', () {
+        final board = GoBoard.fromDimension(19);
+        for (final v in [
+          (x: 0, y: 1),
+          (x: 1, y: 0),
+          (x: 1, y: 2),
+          (x: 2, y: 0),
+          (x: 2, y: 2),
+          (x: 3, y: 1),
+        ]) {
+          board.set(v, GoStone.black);
+        }
+        // TODO: add exception
+        board.makeMove((x: 1, y: 1), GoStone.white, preventSuicide: true);
+      });
+
+      test('should handle stone overwrites correctly', () {
+        final board = GoBoard.fromDimension(19);
+        for (final v in [
+          (x: 10, y: 9),
+          (x: 10, y: 10),
+          (x: 10, y: 11),
+        ]) {
+          board.set(v, GoStone.black);
+        }
+        for (final v in [
+          (x: 10, y: 8),
+          (x: 9, y: 9),
+          (x: 11, y: 9),
+        ]) {
+          board.set(v, GoStone.white);
+        }
+        final move = board.makeMove((x: 10, y: 10), GoStone.white);
+        expect(move.get((x: 10, y: 10)), GoStone.white);
+        expect(move.get((x: 10, y: 9)), null);
+        expect(move.get((x: 10, y: 11)), GoStone.black);
+      });
+
+      test('should prevent stone overwrites if desired', () {
+        final board = GoBoard.fromDimension(19);
+        for (final v in [
+          (x: 10, y: 9),
+          (x: 10, y: 10),
+          (x: 10, y: 11),
+        ]) {
+          board.set(v, GoStone.black);
+        }
+        for (final v in [
+          (x: 10, y: 8),
+          (x: 9, y: 9),
+          (x: 11, y: 9),
+        ]) {
+          board.set(v, GoStone.white);
+        }
+
+        expect(
+          () => board
+              .makeMove((x: 10, y: 10), GoStone.white, preventOverwrite: true),
+          throwsA(isA<IllegalMoveException>()),
+        );
+      });
+
+      test('should prevent ko if desired', () {
+        var board = GoBoard.fromDimension(19);
+        final black = [
+          (x: 0, y: 1),
+          (x: 1, y: 0),
+          (x: 1, y: 2),
+          (x: 2, y: 1),
+        ];
+        final white = [
+          (x: 2, y: 0),
+          (x: 2, y: 2),
+          (x: 3, y: 1),
+        ];
+        for (final v in black) {
+          board.set(v, GoStone.black);
+        }
+        for (final v in white) {
+          board.set(v, GoStone.white);
+        }
+        final move = board.makeMove((x: 1, y: 1), GoStone.white);
+        expect(
+          () => move.makeMove((x: 2, y: 1), GoStone.black, preventKo: true),
+          throwsA(isA<IllegalMoveException>()),
+        );
       });
     });
 
