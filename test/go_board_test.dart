@@ -293,7 +293,6 @@ void main() {
         final board2 = board1.makeMove((x: 3, y: 3), GoStone.black).set(
             (x: 4, y: 4), GoStone.black).set((x: 3, y: 4), GoStone.black);
 
-        // Symmetry
         expect(
           DeepCollectionEquality().equals(
             board1.diff(board2),
@@ -302,7 +301,6 @@ void main() {
           true,
         );
 
-        // Exact set of changed vertices
         final expected = [
           (x: 3, y: 3),
           (x: 3, y: 4),
@@ -314,9 +312,17 @@ void main() {
         );
 
         final board3 = GoBoard.fromDimension(8, 9);
-        // Different dimensions: should be symmetric and null
         expect(board1.diff(board3), board3.diff(board1));
         expect(board1.diff(board3), null);
+      });
+    });
+
+    group('stringifyVertex', () {
+      test('should stringify vertex to Go coordinates', () {
+        expect(data.board.stringifyVertex((x: 3, y: 3)), 'D16');
+        expect(data.board.stringifyVertex((x: 16, y: 14)), 'R5');
+        expect(data.board.stringifyVertex((x: -1, y: 14)), '');
+        expect(data.board.stringifyVertex((x: 0, y: 19)), '');
       });
     });
 
@@ -326,7 +332,6 @@ void main() {
         final board2 = board1.makeMove((x: 3, y: 3), GoStone.black).set(
             (x: 4, y: 4), GoStone.black).set((x: 3, y: 4), GoStone.black);
 
-        // Symmetry
         expect(
           DeepCollectionEquality().equals(
             board1.diff(board2),
@@ -348,7 +353,6 @@ void main() {
         );
 
         final board3 = GoBoard.fromDimension(8, 9);
-        // Different dimensions: should be symmetric and null
         expect(board1.diff(board3), board3.diff(board1));
         expect(board1.diff(board3), null);
       });

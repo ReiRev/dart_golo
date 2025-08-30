@@ -5,12 +5,21 @@ enum GoStone {
 
 typedef Vertex = ({int x, int y});
 
+extension VertexExt on Vertex {
+  String toGoString(int size) {
+    if (x < 0 || y < 0 || x >= size || y >= size) return '';
+    const letters = 'ABCDEFGHJKLMNOPQRST';
+    return '${letters[x]}${size - y}';
+  }
+}
+
 typedef KoInfo = ({GoStone stone, Vertex vertex});
 
 class GoBoard {
   List<List<GoStone?>> state;
   final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
   KoInfo? _koInfo;
+  static const alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 
   GoBoard(this.state, {Map<GoStone, int>? captures, KoInfo? koInfo}) {
     final int rowLength = state[0].length;
@@ -205,5 +214,10 @@ class GoBoard {
       }
     }
     return result;
+  }
+
+  String stringifyVertex(Vertex v) {
+    if (!has(v)) return '';
+    return '${alpha[v.x]}${height - v.y}';
   }
 }
