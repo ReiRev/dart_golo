@@ -259,7 +259,11 @@ void main() {
         board.set((x: 1, y: 1), Stone.white);
         expect(
           () => board.makeMove((x: 2, y: 1), Stone.white, preventSuicide: true),
-          throwsA(isA<IllegalMoveException>()),
+          throwsA(isA<IllegalMoveException>().having(
+            (e) => e.reason,
+            'reason',
+            IllegalMoveReason.suicide,
+          )),
         );
       });
 
@@ -305,7 +309,11 @@ void main() {
         expect(
           () => board
               .makeMove((x: 10, y: 10), Stone.white, preventOverwrite: true),
-          throwsA(isA<IllegalMoveException>()),
+          throwsA(isA<IllegalMoveException>().having(
+            (e) => e.reason,
+            'reason',
+            IllegalMoveReason.overwrite,
+          )),
         );
       });
 
@@ -331,7 +339,11 @@ void main() {
         final move = board.makeMove((x: 1, y: 1), Stone.white);
         expect(
           () => move.makeMove((x: 2, y: 1), Stone.black, preventKo: true),
-          throwsA(isA<IllegalMoveException>()),
+          throwsA(isA<IllegalMoveException>().having(
+            (e) => e.reason,
+            'reason',
+            IllegalMoveReason.ko,
+          )),
         );
       });
     });
