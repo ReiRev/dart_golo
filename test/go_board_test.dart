@@ -272,8 +272,11 @@ void main() {
         ]) {
           board.set(v, Stone.black);
         }
-        // TODO: add exception
-        board.makeMove((x: 1, y: 1), Stone.white, preventSuicide: true);
+        board.set((x: 1, y: 1), Stone.white);
+        expect(
+          () => board.makeMove((x: 2, y: 1), Stone.white, preventSuicide: true),
+          throwsA(isA<IllegalMoveException>()),
+        );
       });
 
       test('should handle stone overwrites correctly', () {
