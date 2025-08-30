@@ -206,7 +206,7 @@ void main() {
         expect(
           DeepCollectionEquality().equals(
             data.board.getRelatedChains((x: 0, y: 0)),
-            <({int x, int y})>[],
+            [],
           ),
           true,
         );
@@ -317,6 +317,45 @@ void main() {
       });
     });
 
+    group('getHandicapPlacement', () {
+      test('should return empty array for small boards', () {
+        expect(
+          DeepCollectionEquality().equals(
+            GoBoard.fromDimension(6, 19).getHandicapPlacement(9),
+            [],
+          ),
+          true,
+        );
+        expect(
+          DeepCollectionEquality().equals(
+            GoBoard.fromDimension(6, 6).getHandicapPlacement(9),
+            [],
+          ),
+          true,
+        );
+      });
+
+      test('should not return tengen for even dimensions', () {
+        final square = GoBoard.fromDimension(8, 8).getHandicapPlacement(9);
+        final portrait = GoBoard.fromDimension(8, 11).getHandicapPlacement(9);
+        final landscape = GoBoard.fromDimension(11, 8).getHandicapPlacement(9);
+
+        expect(square.any((v) => v.x == 4 && v.y == 4), false);
+        expect(portrait.any((v) => v.x == 4 && v.y == 5), false);
+        expect(landscape.any((v) => v.x == 5 && v.y == 4), false);
+      });
+
+      test('should return tengen for odd dimensions', () {
+        final square = GoBoard.fromDimension(9, 9).getHandicapPlacement(9);
+        final portrait = GoBoard.fromDimension(9, 11).getHandicapPlacement(9);
+        final landscape = GoBoard.fromDimension(11, 9).getHandicapPlacement(9);
+
+        expect(square.any((v) => v.x == 4 && v.y == 4), true);
+        expect(portrait.any((v) => v.x == 4 && v.y == 5), true);
+        expect(landscape.any((v) => v.x == 5 && v.y == 4), true);
+      });
+    });
+
     group('stringifyVertex', () {
       test('should stringify vertex to Go coordinates', () {
         expect(data.board.stringifyVertex((x: 3, y: 3)), 'D16');
@@ -420,7 +459,7 @@ void main() {
         expect(
           DeepCollectionEquality().equals(
             board.getNeighbors((x: -1, y: -1)),
-            <({int x, int y})>[],
+            [],
           ),
           true,
         );

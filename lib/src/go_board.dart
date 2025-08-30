@@ -1,3 +1,5 @@
+import 'dart:math';
+
 enum GoStone {
   black,
   white,
@@ -214,6 +216,60 @@ class GoBoard {
       }
     }
     return result;
+  }
+
+  List<Vertex> getHandicapPlacement(int count, {bool tygem = false}) {
+    if (min(width, height) <= 6 || count < 2) return [];
+
+    final nearX = width >= 13 ? 3 : 2;
+    final nearY = height >= 13 ? 3 : 2;
+    final farX = width - nearX - 1;
+    final farY = height - nearY - 1;
+    final middleX = (width - 1) ~/ 2;
+    final middleY = (height - 1) ~/ 2;
+
+    final result = <Vertex>[];
+    if (!tygem) {
+      result.addAll([
+        (x: nearX, y: farY),
+        (x: farX, y: nearY),
+        (x: farX, y: farY),
+        (x: nearX, y: nearY),
+      ]);
+    } else {
+      result.addAll([
+        (x: nearX, y: farY),
+        (x: farX, y: nearY),
+        (x: nearX, y: nearY),
+        (x: farX, y: farY),
+      ]);
+    }
+
+    if (width.isOdd && height.isOdd && width != 7 && height != 7) {
+      if (count == 5) result.add((x: middleX, y: middleY));
+      result.addAll([
+        (x: nearX, y: middleY),
+        (x: farX, y: middleY),
+      ]);
+      if (count == 7) result.add((x: middleX, y: middleY));
+      result.addAll([
+        (x: middleX, y: nearY),
+        (x: middleX, y: farY),
+        (x: middleX, y: middleY),
+      ]);
+    } else if (width.isOdd && width != 7) {
+      result.addAll([
+        (x: middleX, y: nearY),
+        (x: middleX, y: farY),
+      ]);
+    } else if (height.isOdd && height != 7) {
+      result.addAll([
+        (x: nearX, y: middleY),
+        (x: farX, y: middleY),
+      ]);
+    }
+
+    return result.take(count).toList();
   }
 
   String stringifyVertex(Vertex v) {
