@@ -48,4 +48,34 @@ class GoBoard {
   int getCaptures(GoStone player) {
     return _captures[player] ?? 0;
   }
+
+  List<Vertex> getChain(Vertex v) {
+    return [];
+  }
+
+  List<Vertex> getNeighbors(Vertex v) {
+    if (!has(v)) {
+      return [];
+    }
+    final x = v.x;
+    final y = v.y;
+    return [
+      (x: x - 1, y: y),
+      (x: x + 1, y: y),
+      (x: x, y: y - 1),
+      (x: x, y: y + 1)
+    ].where((v) => has(v)).toList();
+  }
+
+  List<Vertex> getConnectedComponent(
+    Vertex v,
+    bool Function(Vertex v) predicate,
+  ) {
+    return [];
+  }
+
+  List<Vertex> getLiberties(Vertex v) {
+    if (!has(v) || get(v) == null) {}
+    return [];
+  }
 }

@@ -152,25 +152,115 @@ void main() {
       expect(data.board.isEmpty(), false);
     });
 
-    //   group('(has|get)Liberties', () {
-    //     test('should return the liberties of the chain of the given vertex', () {
-    //       final board = GoBoard.fromDimension(19);
-    //       board.set(1, 1, GoStone.white).set(2, 1, GoStone.white);
+    group('getNeighbors', () {
+      test('should return neighbors for vertices in the middle', () {
+        final board = GoBoard.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 1, y: 1)),
+            [
+              (x: 0, y: 1),
+              (x: 2, y: 1),
+              (x: 1, y: 0),
+              (x: 1, y: 2),
+            ],
+          ),
+          true,
+        );
+      });
 
-    //       expect(
-    //         DeepCollectionEquality().equals(
-    //           board.getLiberties(1, 1).sort(),
-    //           [(0, 1), (1, 0), (1, 2), (2, 0), (2, 2), (3, 1)],
-    //         ),
-    //         true,
-    //       );
-    //       expect(board.hasLiberties(1, 1), true);
-    //       expect(
-    //         DeepCollectionEquality().equals(board.getLiberties(1, 2), []),
-    //         true,
-    //       );
-    //       expect(board.hasLiberties(1, 2), false);
-    //     });
-    //   });
+      test('should return neighbors for vertices on the side', () {
+        final board = GoBoard.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 1, y: 0)),
+            [
+              (x: 0, y: 0),
+              (x: 2, y: 0),
+              (x: 1, y: 1),
+            ],
+          ),
+          true,
+        );
+      });
+
+      test('should return neighbors for vertices in the corner', () {
+        final board = GoBoard.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 0, y: 0)),
+            [
+              (x: 1, y: 0),
+              (x: 0, y: 1),
+            ],
+          ),
+          true,
+        );
+      });
+
+      test('should return empty list for vertices not on board', () {
+        final board = GoBoard.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: -1, y: -1)),
+            <({int x, int y})>[],
+          ),
+          true,
+        );
+      });
+    });
+
+    group('getConnectedComponent', () {
+      // test('should be able to return the chain of a vertex', () {
+      //   final board = GoBoard.fromDimension(19);
+      //   for (var xy in [
+      //     [0, 1],
+      //     [1, 0],
+      //     [1, 2],
+      //     [2, 0],
+      //     [2, 2],
+      //   ]) {
+      //     board.set((x: xy[0], y: xy[1]), GoStone.black);
+      //   }
+      //   for (var xy in [
+      //     [1, 1],
+      //     [2, 1],
+      //   ]) {
+      //     board.set((x: xy[0], y: xy[1]), GoStone.white);
+      //   }
+
+      //   expect(
+      //     UnorderedIterableEquality().equals(
+      //       board.getConnectedComponent(
+      //         (x: 1, y: 1),
+      //         (v) => board.get(v) == GoStone.white,
+      //       ),
+      //       [(x: 1, y: 1), (x: 2, y: 1)],
+      //     ),
+      //     true,
+      //   );
+      // });
+    });
+
+    group('(has|get)Liberties', () {
+      test('should return the liberties of the chain of the given vertex', () {
+        // final board = GoBoard.fromDimension(19);
+        // board.set((x: 1, y: 1), GoStone.white).set((x: 2, y: 1), GoStone.white);
+
+        // expect(
+        //   UnorderedIterableEquality().equals(
+        //     board.getLiberties((x: 1, y: 1)),
+        //     [(0, 1), (1, 0), (1, 2), (2, 0), (2, 2), (3, 1)],
+        //   ),
+        //   true,
+        // );
+        // expect(board.hasLiberties((x: 1, y: 1)), true);
+        // expect(
+        //   DeepCollectionEquality().equals(board.getLiberties((x: 1, y: 2)), []),
+        //   true,
+        // );
+        // expect(board.hasLiberties((x: 1, y: 2)), false);
+      });
+    });
   });
 }
