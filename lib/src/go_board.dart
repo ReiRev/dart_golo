@@ -25,7 +25,7 @@ class GoBoard {
   int get height => state.length;
   int get width => state[0].length;
 
-  GoStone? get(Vertex v) => state[v.y][v.x];
+  GoStone? get(Vertex v) => has(v) ? state[v.y][v.x] : null;
   bool has(Vertex v) => 0 <= v.x && v.x < width && 0 <= v.y && v.y < height;
   bool isSquare() => width == height;
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
@@ -49,8 +49,9 @@ class GoBoard {
     return _captures[player] ?? 0;
   }
 
-  List<Vertex> getChain(Vertex v) {
-    return [];
+  List<Vertex> getChain(Vertex vertex) {
+    final stone = get(vertex);
+    return getConnectedComponent(vertex, (v) => get(v) == stone);
   }
 
   List<Vertex> getNeighbors(Vertex v) {
@@ -89,8 +90,19 @@ class GoBoard {
   }
 
   List<Vertex> getLiberties(Vertex v) {
-    if (!has(v) || get(v) == null) {}
-    return [];
+    if (!has(v) || get(v) == null) return [];
+
+    final chain = getChain(v);
+    final Set<Vertex> liberties = {};
+    for (final c in chain) {
+      for (final nv in getNeighbors(c)) {
+        if (get(nv) == null) {
+          liberties.add(nv);
+        }
+      }
+    }
+
+    return liberties.toList();
   }
 
   int getDistance(Vertex v1, Vertex v2) {

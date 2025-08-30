@@ -376,7 +376,8 @@ void main() {
         );
       });
 
-      test('should be able to return the stone connected component of a vertex', () {
+      test('should be able to return the stone connected component of a vertex',
+          () {
         final board = GoBoard.fromDimension(19);
         for (final xy in [
           [0, 1],
@@ -417,22 +418,43 @@ void main() {
 
     group('(has|get)Liberties', () {
       test('should return the liberties of the chain of the given vertex', () {
-        // final board = GoBoard.fromDimension(19);
-        // board.set((x: 1, y: 1), GoStone.white).set((x: 2, y: 1), GoStone.white);
+        final board = GoBoard.fromDimension(19);
+        board.set((x: 1, y: 1), GoStone.white).set((x: 2, y: 1), GoStone.white);
+        expect(
+          UnorderedIterableEquality().equals(
+            board.getLiberties((x: 1, y: 1)),
+            [
+              (x: 0, y: 1),
+              (x: 1, y: 0),
+              (x: 1, y: 2),
+              (x: 2, y: 0),
+              (x: 2, y: 2),
+              (x: 3, y: 1),
+            ],
+          ),
+          true,
+        );
+        expect(board.hasLiberties((x: 1, y: 1)), true);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getLiberties((x: 1, y: 2)),
+            [],
+          ),
+          true,
+        );
+        expect(board.hasLiberties((x: 1, y: 2)), false);
+      });
 
-        // expect(
-        //   UnorderedIterableEquality().equals(
-        //     board.getLiberties((x: 1, y: 1)),
-        //     [(0, 1), (1, 0), (1, 2), (2, 0), (2, 2), (3, 1)],
-        //   ),
-        //   true,
-        // );
-        // expect(board.hasLiberties((x: 1, y: 1)), true);
-        // expect(
-        //   DeepCollectionEquality().equals(board.getLiberties((x: 1, y: 2)), []),
-        //   true,
-        // );
-        // expect(board.hasLiberties((x: 1, y: 2)), false);
+      test('should return empty list for a vertex not on the board', () {
+        final board = GoBoard.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getLiberties((x: -1, y: -1)),
+            [],
+          ),
+          true,
+        );
+        expect(board.hasLiberties((x: -1, y: -1)), false);
       });
     });
   });
