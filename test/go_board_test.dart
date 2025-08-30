@@ -152,6 +152,47 @@ void main() {
       expect(data.board.isEmpty(), false);
     });
 
+    group('isValid', () {
+      test('should return true for valid board arrangements', () {
+        final board = GoBoard.fromDimension(19);
+        expect(board.isValid(), true);
+
+        board.set((x: 1, y: 1), GoStone.black).set((x: 1, y: 2), GoStone.white);
+        expect(board.isValid(), true);
+      });
+
+      test('should return false for non-valid board arrangements', () {
+        var board = GoBoard.fromDimension(19);
+        for (final xy in [
+          [1, 0],
+          [0, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.black);
+        }
+        board.set((x: 0, y: 0), GoStone.white);
+        expect(board.isValid(), false);
+
+        board = GoBoard.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+          [3, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), GoStone.white);
+        }
+        expect(board.isValid(), false);
+      });
+    });
+
     group('getNeighbors', () {
       test('should return neighbors for vertices in the middle', () {
         final board = GoBoard.fromDimension(19);

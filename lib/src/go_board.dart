@@ -78,4 +78,40 @@ class GoBoard {
     if (!has(v) || get(v) == null) {}
     return [];
   }
+
+  bool hasLiberties(Vertex v, [Map<Vertex, bool>? visited]) {
+    final stone = get(v);
+    if (!has(v) || stone == null) return false;
+
+    final key = '${v.x},${v.y}';
+    visited ??= <Vertex, bool>{};
+    if (visited.containsKey(v)) return false;
+
+    final neighbors = getNeighbors(v);
+    if (neighbors.any((n) => get(n) == null)) return true;
+
+    visited[v] = true;
+
+    return neighbors
+        .where((n) => get(n) == stone)
+        .any((n) => hasLiberties(n, visited));
+  }
+
+  bool isValid() {
+    final Map<Vertex, bool> liberties = {};
+
+    for (var x = 0; x < width; x++) {
+      for (var y = 0; y < height; y++) {
+        final v = (x: x, y: y);
+        if (get(v) == null || liberties.containsKey(v)) continue;
+        if (!hasLiberties(v)) return false;
+
+        for (final v in getChain(v)) {
+          liberties[v] = true;
+        }
+      }
+    }
+
+    return true;
+  }
 }
