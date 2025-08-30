@@ -86,69 +86,6 @@ void main() {
           true);
     });
 
-    test('isSquare', () {
-      final board = Board.fromDimension(15, 16);
-      expect(board.isSquare(), false);
-
-      expect(data.board.isSquare(), true);
-    });
-
-    test('isEmpty', () {
-      final board = Board.fromDimension(15, 16);
-      expect(board.isEmpty(), true);
-
-      expect(data.board.isEmpty(), false);
-    });
-
-    group('isValid', () {
-      test('should return true for valid board arrangements', () {
-        final board = Board.fromDimension(19);
-        expect(board.isValid(), true);
-
-        board.set((x: 1, y: 1), Stone.black).set((x: 1, y: 2), Stone.white);
-        expect(board.isValid(), true);
-      });
-
-      test('should return false for non-valid board arrangements', () {
-        var board = Board.fromDimension(19);
-        for (final xy in [
-          [1, 0],
-          [0, 1],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.black);
-        }
-        board.set((x: 0, y: 0), Stone.white);
-        expect(board.isValid(), false);
-
-        board = Board.fromDimension(19);
-        for (final xy in [
-          [0, 1],
-          [1, 0],
-          [1, 2],
-          [2, 0],
-          [2, 2],
-          [3, 1],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.black);
-        }
-        for (final xy in [
-          [1, 1],
-          [2, 1],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.white);
-        }
-        expect(board.isValid(), false);
-      });
-    });
-
-    group('getDistance', () {
-      test('should compute Manhattan distance', () {
-        final board = Board.fromDimension(19);
-        expect(board.getDistance((x: 1, y: 2), (x: 8, y: 4)), 9);
-        expect(board.getDistance((x: -1, y: -2), (x: 8, y: 4)), 15);
-      });
-    });
-
     group('makeMove', () {
       test('should not mutate board', () {
         final board = Board.fromDimension(19);
@@ -352,6 +289,198 @@ void main() {
       });
     });
 
+    test('isSquare', () {
+      final board = Board.fromDimension(15, 16);
+      expect(board.isSquare(), false);
+
+      expect(data.board.isSquare(), true);
+    });
+
+    test('isEmpty', () {
+      final board = Board.fromDimension(15, 16);
+      expect(board.isEmpty(), true);
+
+      expect(data.board.isEmpty(), false);
+    });
+
+    group('isValid', () {
+      test('should return true for valid board arrangements', () {
+        final board = Board.fromDimension(19);
+        expect(board.isValid(), true);
+
+        board.set((x: 1, y: 1), Stone.black).set((x: 1, y: 2), Stone.white);
+        expect(board.isValid(), true);
+      });
+
+      test('should return false for non-valid board arrangements', () {
+        var board = Board.fromDimension(19);
+        for (final xy in [
+          [1, 0],
+          [0, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.black);
+        }
+        board.set((x: 0, y: 0), Stone.white);
+        expect(board.isValid(), false);
+
+        board = Board.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+          [3, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.white);
+        }
+        expect(board.isValid(), false);
+      });
+    });
+
+    group('getDistance', () {
+      test('should compute Manhattan distance', () {
+        final board = Board.fromDimension(19);
+        expect(board.getDistance((x: 1, y: 2), (x: 8, y: 4)), 9);
+        expect(board.getDistance((x: -1, y: -2), (x: 8, y: 4)), 15);
+      });
+    });
+
+    group('getNeighbors', () {
+      test('should return neighbors for vertices in the middle', () {
+        final board = Board.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 1, y: 1)),
+            [
+              (x: 0, y: 1),
+              (x: 2, y: 1),
+              (x: 1, y: 0),
+              (x: 1, y: 2),
+            ],
+          ),
+          true,
+        );
+      });
+
+      test('should return neighbors for vertices on the side', () {
+        final board = Board.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 1, y: 0)),
+            [
+              (x: 0, y: 0),
+              (x: 2, y: 0),
+              (x: 1, y: 1),
+            ],
+          ),
+          true,
+        );
+      });
+
+      test('should return neighbors for vertices in the corner', () {
+        final board = Board.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: 0, y: 0)),
+            [
+              (x: 1, y: 0),
+              (x: 0, y: 1),
+            ],
+          ),
+          true,
+        );
+      });
+
+      test('should return empty list for vertices not on board', () {
+        final board = Board.fromDimension(19);
+        expect(
+          DeepCollectionEquality().equals(
+            board.getNeighbors((x: -1, y: -1)),
+            [],
+          ),
+          true,
+        );
+      });
+    });
+
+    group('getConnectedComponent', () {
+      test('should be able to return the chain of a vertex', () {
+        final board = Board.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.white);
+        }
+
+        expect(
+          UnorderedIterableEquality().equals(
+            board.getConnectedComponent(
+              (x: 1, y: 1),
+              (v) => board.get(v) == Stone.white,
+            ),
+            [(x: 1, y: 1), (x: 2, y: 1)],
+          ),
+          true,
+        );
+      });
+
+      test('should be able to return the stone connected component of a vertex',
+          () {
+        final board = Board.fromDimension(19);
+        for (final xy in [
+          [0, 1],
+          [1, 0],
+          [1, 2],
+          [2, 0],
+          [2, 2],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.black);
+        }
+        for (final xy in [
+          [1, 1],
+          [2, 1],
+        ]) {
+          board.set((x: xy[0], y: xy[1]), Stone.white);
+        }
+
+        expect(
+          UnorderedIterableEquality().equals(
+            board.getConnectedComponent(
+              (x: 1, y: 1),
+              (v) => board.get(v) != null,
+            ),
+            [
+              (x: 0, y: 1),
+              (x: 1, y: 0),
+              (x: 1, y: 1),
+              (x: 1, y: 2),
+              (x: 2, y: 0),
+              (x: 2, y: 1),
+              (x: 2, y: 2),
+            ],
+          ),
+          true,
+        );
+      });
+    });
+
     group('getRelatedChains', () {
       test('should return empty for isolated empty vertex', () {
         expect(
@@ -438,283 +567,6 @@ void main() {
       });
     });
 
-    group('diff', () {
-      test('should compute differences between boards', () {
-        final board1 = Board.fromDimension(9, 9);
-        final board2 = board1.makeMove((x: 3, y: 3), Stone.black).set(
-            (x: 4, y: 4), Stone.black).set((x: 3, y: 4), Stone.black);
-
-        expect(
-          DeepCollectionEquality().equals(
-            board1.diff(board2),
-            board2.diff(board1),
-          ),
-          true,
-        );
-
-        final expected = [
-          (x: 3, y: 3),
-          (x: 3, y: 4),
-          (x: 4, y: 4),
-        ];
-        expect(
-          UnorderedIterableEquality().equals(board1.diff(board2), expected),
-          true,
-        );
-
-        final board3 = Board.fromDimension(8, 9);
-        expect(board1.diff(board3), board3.diff(board1));
-        expect(board1.diff(board3), null);
-      });
-    });
-
-    group('getHandicapPlacement', () {
-      test('should return empty array for small boards', () {
-        expect(
-          DeepCollectionEquality().equals(
-            Board.fromDimension(6, 19).getHandicapPlacement(9),
-            [],
-          ),
-          true,
-        );
-        expect(
-          DeepCollectionEquality().equals(
-            Board.fromDimension(6, 6).getHandicapPlacement(9),
-            [],
-          ),
-          true,
-        );
-      });
-
-      test('should not return tengen for even dimensions', () {
-        final square = Board.fromDimension(8, 8).getHandicapPlacement(9);
-        final portrait = Board.fromDimension(8, 11).getHandicapPlacement(9);
-        final landscape = Board.fromDimension(11, 8).getHandicapPlacement(9);
-
-        expect(square.any((v) => v.x == 4 && v.y == 4), false);
-        expect(portrait.any((v) => v.x == 4 && v.y == 5), false);
-        expect(landscape.any((v) => v.x == 5 && v.y == 4), false);
-      });
-
-      test('should return tengen for odd dimensions', () {
-        final square = Board.fromDimension(9, 9).getHandicapPlacement(9);
-        final portrait = Board.fromDimension(9, 11).getHandicapPlacement(9);
-        final landscape = Board.fromDimension(11, 9).getHandicapPlacement(9);
-
-        expect(square.any((v) => v.x == 4 && v.y == 4), true);
-        expect(portrait.any((v) => v.x == 4 && v.y == 5), true);
-        expect(landscape.any((v) => v.x == 5 && v.y == 4), true);
-      });
-    });
-
-    group('stringifyVertex', () {
-      test('should stringify vertex to Go coordinates', () {
-        expect(data.board.stringifyVertex((x: 3, y: 3)), 'D16');
-        expect(data.board.stringifyVertex((x: 16, y: 14)), 'R5');
-        expect(data.board.stringifyVertex((x: -1, y: 14)), '');
-        expect(data.board.stringifyVertex((x: 0, y: 19)), '');
-      });
-    });
-
-    group('diff', () {
-      test('should compute differences between boards', () {
-        final board1 = Board.fromDimension(9, 9);
-        final board2 = board1.makeMove((x: 3, y: 3), Stone.black).set(
-            (x: 4, y: 4), Stone.black).set((x: 3, y: 4), Stone.black);
-
-        expect(
-          DeepCollectionEquality().equals(
-            board1.diff(board2),
-            board2.diff(board1),
-          ),
-          true,
-        );
-
-        expect(
-          UnorderedIterableEquality().equals(
-            board1.diff(board2),
-            [
-              (x: 3, y: 3),
-              (x: 3, y: 4),
-              (x: 4, y: 4),
-            ],
-          ),
-          true,
-        );
-
-        final board3 = Board.fromDimension(8, 9);
-        expect(board1.diff(board3), board3.diff(board1));
-        expect(board1.diff(board3), null);
-      });
-    });
-
-    group('parseVertex', () {
-      test('should parse Go coordinates to vertex', () {
-        expect(data.board.parseVertex('d16'), (x: 3, y: 3));
-        expect(data.board.parseVertex('R5'), (x: 16, y: 14));
-        expect(data.board.parseVertex('R'), null);
-        expect(data.board.parseVertex('Z3'), null);
-        expect(data.board.parseVertex('pass'), null);
-        expect(data.board.parseVertex(''), null);
-      });
-    });
-
-    group('getNeighbors', () {
-      test('should return neighbors for vertices in the middle', () {
-        final board = Board.fromDimension(19);
-        expect(
-          DeepCollectionEquality().equals(
-            board.getNeighbors((x: 1, y: 1)),
-            [
-              (x: 0, y: 1),
-              (x: 2, y: 1),
-              (x: 1, y: 0),
-              (x: 1, y: 2),
-            ],
-          ),
-          true,
-        );
-      });
-
-      test('should return neighbors for vertices on the side', () {
-        final board = Board.fromDimension(19);
-        expect(
-          DeepCollectionEquality().equals(
-            board.getNeighbors((x: 1, y: 0)),
-            [
-              (x: 0, y: 0),
-              (x: 2, y: 0),
-              (x: 1, y: 1),
-            ],
-          ),
-          true,
-        );
-      });
-
-      test('should return neighbors for vertices in the corner', () {
-        final board = Board.fromDimension(19);
-        expect(
-          DeepCollectionEquality().equals(
-            board.getNeighbors((x: 0, y: 0)),
-            [
-              (x: 1, y: 0),
-              (x: 0, y: 1),
-            ],
-          ),
-          true,
-        );
-      });
-
-      test('should return empty list for vertices not on board', () {
-        final board = Board.fromDimension(19);
-        expect(
-          DeepCollectionEquality().equals(
-            board.getNeighbors((x: -1, y: -1)),
-            [],
-          ),
-          true,
-        );
-      });
-    });
-
-    test('clone', () {
-      final board = Board.fromDimension(19);
-      for (final xy in [
-        [0, 1],
-        [1, 0],
-        [1, 2],
-        [2, 0],
-        [2, 2],
-      ]) {
-        board.set((x: xy[0], y: xy[1]), Stone.black);
-      }
-      for (final xy in [
-        [1, 1],
-        [2, 1],
-      ]) {
-        board.set((x: xy[0], y: xy[1]), Stone.white);
-      }
-
-      final clone = board.clone();
-
-      expect(identical(board.state, clone.state), false);
-      expect(
-        DeepCollectionEquality().equals(board.state, clone.state),
-        true,
-      );
-    });
-
-    group('getConnectedComponent', () {
-      test('should be able to return the chain of a vertex', () {
-        final board = Board.fromDimension(19);
-        for (final xy in [
-          [0, 1],
-          [1, 0],
-          [1, 2],
-          [2, 0],
-          [2, 2],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.black);
-        }
-        for (final xy in [
-          [1, 1],
-          [2, 1],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.white);
-        }
-
-        expect(
-          UnorderedIterableEquality().equals(
-            board.getConnectedComponent(
-              (x: 1, y: 1),
-              (v) => board.get(v) == Stone.white,
-            ),
-            [(x: 1, y: 1), (x: 2, y: 1)],
-          ),
-          true,
-        );
-      });
-
-      test('should be able to return the stone connected component of a vertex',
-          () {
-        final board = Board.fromDimension(19);
-        for (final xy in [
-          [0, 1],
-          [1, 0],
-          [1, 2],
-          [2, 0],
-          [2, 2],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.black);
-        }
-        for (final xy in [
-          [1, 1],
-          [2, 1],
-        ]) {
-          board.set((x: xy[0], y: xy[1]), Stone.white);
-        }
-
-        expect(
-          UnorderedIterableEquality().equals(
-            board.getConnectedComponent(
-              (x: 1, y: 1),
-              (v) => board.get(v) != null,
-            ),
-            [
-              (x: 0, y: 1),
-              (x: 1, y: 0),
-              (x: 1, y: 1),
-              (x: 1, y: 2),
-              (x: 2, y: 0),
-              (x: 2, y: 1),
-              (x: 2, y: 2),
-            ],
-          ),
-          true,
-        );
-      });
-    });
-
     group('(has|get)Liberties', () {
       test('should return the liberties of the chain of the given vertex', () {
         final board = Board.fromDimension(19);
@@ -754,6 +606,122 @@ void main() {
           true,
         );
         expect(board.hasLiberties((x: -1, y: -1)), false);
+      });
+    });
+
+    test('clone', () {
+      final board = Board.fromDimension(19);
+      for (final xy in [
+        [0, 1],
+        [1, 0],
+        [1, 2],
+        [2, 0],
+        [2, 2],
+      ]) {
+        board.set((x: xy[0], y: xy[1]), Stone.black);
+      }
+      for (final xy in [
+        [1, 1],
+        [2, 1],
+      ]) {
+        board.set((x: xy[0], y: xy[1]), Stone.white);
+      }
+
+      final clone = board.clone();
+
+      expect(identical(board.state, clone.state), false);
+      expect(
+        DeepCollectionEquality().equals(board.state, clone.state),
+        true,
+      );
+    });
+
+    group('diff', () {
+      test('should compute differences between boards', () {
+        final board1 = Board.fromDimension(9, 9);
+        final board2 = board1.makeMove((x: 3, y: 3), Stone.black).set(
+            (x: 4, y: 4), Stone.black).set((x: 3, y: 4), Stone.black);
+
+        expect(
+          DeepCollectionEquality().equals(
+            board1.diff(board2),
+            board2.diff(board1),
+          ),
+          true,
+        );
+
+        final expected = [
+          (x: 3, y: 3),
+          (x: 3, y: 4),
+          (x: 4, y: 4),
+        ];
+        expect(
+          UnorderedIterableEquality().equals(board1.diff(board2), expected),
+          true,
+        );
+
+        final board3 = Board.fromDimension(8, 9);
+        expect(board1.diff(board3), board3.diff(board1));
+        expect(board1.diff(board3), null);
+      });
+    });
+
+    group('stringifyVertex', () {
+      test('should stringify vertex to Go coordinates', () {
+        expect(data.board.stringifyVertex((x: 3, y: 3)), 'D16');
+        expect(data.board.stringifyVertex((x: 16, y: 14)), 'R5');
+        expect(data.board.stringifyVertex((x: -1, y: 14)), '');
+        expect(data.board.stringifyVertex((x: 0, y: 19)), '');
+      });
+    });
+
+    group('parseVertex', () {
+      test('should parse Go coordinates to vertex', () {
+        expect(data.board.parseVertex('d16'), (x: 3, y: 3));
+        expect(data.board.parseVertex('R5'), (x: 16, y: 14));
+        expect(data.board.parseVertex('R'), null);
+        expect(data.board.parseVertex('Z3'), null);
+        expect(data.board.parseVertex('pass'), null);
+        expect(data.board.parseVertex(''), null);
+      });
+    });
+
+    group('getHandicapPlacement', () {
+      test('should return empty array for small boards', () {
+        expect(
+          DeepCollectionEquality().equals(
+            Board.fromDimension(6, 19).getHandicapPlacement(9),
+            [],
+          ),
+          true,
+        );
+        expect(
+          DeepCollectionEquality().equals(
+            Board.fromDimension(6, 6).getHandicapPlacement(9),
+            [],
+          ),
+          true,
+        );
+      });
+
+      test('should not return tengen for even dimensions', () {
+        final square = Board.fromDimension(8, 8).getHandicapPlacement(9);
+        final portrait = Board.fromDimension(8, 11).getHandicapPlacement(9);
+        final landscape = Board.fromDimension(11, 8).getHandicapPlacement(9);
+
+        expect(square.any((v) => v.x == 4 && v.y == 4), false);
+        expect(portrait.any((v) => v.x == 4 && v.y == 5), false);
+        expect(landscape.any((v) => v.x == 5 && v.y == 4), false);
+      });
+
+      test('should return tengen for odd dimensions', () {
+        final square = Board.fromDimension(9, 9).getHandicapPlacement(9);
+        final portrait = Board.fromDimension(9, 11).getHandicapPlacement(9);
+        final landscape = Board.fromDimension(11, 9).getHandicapPlacement(9);
+
+        expect(square.any((v) => v.x == 4 && v.y == 4), true);
+        expect(portrait.any((v) => v.x == 4 && v.y == 5), true);
+        expect(landscape.any((v) => v.x == 5 && v.y == 4), true);
       });
     });
   });
