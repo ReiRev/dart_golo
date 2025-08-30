@@ -3,6 +3,8 @@ enum GoStone {
   white,
 }
 
+typedef Vertex = ({int x, int y});
+
 class GoBoard {
   List<List<GoStone?>> state;
   final Map<GoStone, int> _captures = {GoStone.black: 0, GoStone.white: 0};
@@ -23,20 +25,20 @@ class GoBoard {
   int get height => state.length;
   int get width => state[0].length;
 
-  GoStone? get(int x, int y) => state[y][x];
-  bool has(int x, int y) => 0 <= x && x < width && 0 <= y && y < height;
+  GoStone? get(Vertex v) => state[v.y][v.x];
+  bool has(Vertex v) => 0 <= v.x && v.x < width && 0 <= v.y && v.y < height;
   bool isSquare() => width == height;
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
-  GoBoard set(int x, int y, GoStone stone) {
-    state[y][x] = stone;
+  GoBoard set(Vertex v, GoStone stone) {
+    state[v.y][v.x] = stone;
     return this;
   }
 
-  GoBoard makeMove(int x, int y, GoStone stone) {
+  GoBoard makeMove(Vertex v, GoStone stone) {
     final board = GoBoard(List.generate(
         height, (y_) => List.generate(width, (x_) => state[y_][x_])));
-    return board.set(x, y, stone);
+    return board.set(v, stone);
   }
 
   void clear() {

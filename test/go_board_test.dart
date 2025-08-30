@@ -17,7 +17,7 @@ void main() {
 
         for (var x = 0; x < board.width; x++) {
           for (var y = 0; y < board.height; y++) {
-            expect(board.get(x, y), null);
+            expect(board.get((x: x, y: y)), null);
           }
         }
 
@@ -53,26 +53,32 @@ void main() {
     group('has', () {
       test('should return true when vertex is on board', () {
         final board = GoBoard.fromDimension(19);
-        expect(board.has(0, 0), true);
-        expect(board.has(13, 18), true);
-        expect(board.has(5, 4), true);
+        expect(board.has((x: 0, y: 0)), true);
+        expect(board.has((x: 13, y: 18)), true);
+        expect(board.has((x: 5, y: 4)), true);
       });
 
       test('should return false when vertex is not on board', () {
         final board = GoBoard.fromDimension(19);
-        expect(board.has(-1, -1), false);
-        expect(board.has(5, -1), false);
-        expect(board.has(board.width, 0), false);
-        expect(board.has(board.width, board.height), false);
+        expect(board.has((x: -1, y: -1)), false);
+        expect(board.has((x: 5, y: -1)), false);
+        expect(board.has((x: board.width, y: 0)), false);
+        expect(board.has((x: board.width, y: board.height)), false);
       });
     });
 
     test('clear', () {
       final board = GoBoard.fromDimension(9, 9);
-      board
-          .set(0, 0, GoStone.black)
-          .set(1, 1, GoStone.white)
-          .set(3, 5, GoStone.black);
+      board.set(
+        (x: 0, y: 0),
+        GoStone.black,
+      ).set(
+        (x: 1, y: 1),
+        GoStone.white,
+      ).set(
+        (x: 3, y: 5),
+        GoStone.black,
+      );
       board.clear();
       expect(
           DeepCollectionEquality()
@@ -145,5 +151,26 @@ void main() {
 
       expect(data.board.isEmpty(), false);
     });
+
+    //   group('(has|get)Liberties', () {
+    //     test('should return the liberties of the chain of the given vertex', () {
+    //       final board = GoBoard.fromDimension(19);
+    //       board.set(1, 1, GoStone.white).set(2, 1, GoStone.white);
+
+    //       expect(
+    //         DeepCollectionEquality().equals(
+    //           board.getLiberties(1, 1).sort(),
+    //           [(0, 1), (1, 0), (1, 2), (2, 0), (2, 2), (3, 1)],
+    //         ),
+    //         true,
+    //       );
+    //       expect(board.hasLiberties(1, 1), true);
+    //       expect(
+    //         DeepCollectionEquality().equals(board.getLiberties(1, 2), []),
+    //         true,
+    //       );
+    //       expect(board.hasLiberties(1, 2), false);
+    //     });
+    //   });
   });
 }
