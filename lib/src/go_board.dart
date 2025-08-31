@@ -495,7 +495,7 @@ class Board {
     }
     buf.writeln(header.toString());
     for (var y = 0; y < height; y++) {
-      final rowLabel = (y + 1).toString();
+      final rowLabel = (height - y).toString();
       buf.write(padLeft(rowLabel, labelWidth));
       buf.write(' ');
       for (var x = 0; x < width; x++) {
