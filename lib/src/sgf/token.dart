@@ -31,8 +31,8 @@ class Token {
 enum TokenType {
   parenthesis,
   semicolon,
-  propIdent,
-  cValueType,
+  propertyIdentifier,
+  propertyValue,
   invalid,
 }
 
@@ -54,9 +54,9 @@ class TokenIterable extends Iterable<Token> {
   static final RegExp reWhitespace = RegExp(r"\s+");
   static final RegExp reParen = RegExp(r"[()]");
   static final RegExp reSemicolon = RegExp(r";");
-  static final RegExp reProp = RegExp(r"[A-Za-z]+");
+  static final RegExp rePropertyIdentifier = RegExp(r"[A-Za-z]+");
   // SGF C value type: [ ... ] allowing escapes (e.g. \], \n), may contain newlines
-  static final RegExp reCValue = RegExp(r"\[(?:\\.|[^\]])*\]");
+  static final RegExp rePropertyValue = RegExp(r"\[(?:\\.|[^\]])*\]");
 
   Iterable<Token> _scan() sync* {
     final text = this.text;
@@ -133,19 +133,20 @@ class TokenIterable extends Iterable<Token> {
         continue;
       }
 
-      final mProp = reProp.matchAsPrefix(text, pos);
-      if (mProp != null) {
-        final lex = mProp.group(0)!;
-        yield makeToken(TokenType.propIdent, lex, startPos, startRow, startCol);
+      final mPropertyIdentifier = rePropertyIdentifier.matchAsPrefix(text, pos);
+      if (mPropertyIdentifier != null) {
+        final lex = mPropertyIdentifier.group(0)!;
+        yield makeToken(
+            TokenType.propertyIdentifier, lex, startPos, startRow, startCol);
         advanceByLexeme(lex);
         continue;
       }
 
-      final mC = reCValue.matchAsPrefix(text, pos);
-      if (mC != null) {
-        final lex = mC.group(0)!;
+      final mPropertyValue = rePropertyValue.matchAsPrefix(text, pos);
+      if (mPropertyValue != null) {
+        final lex = mPropertyValue.group(0)!;
         yield makeToken(
-            TokenType.cValueType, lex, startPos, startRow, startCol);
+            TokenType.propertyValue, lex, startPos, startRow, startCol);
         advanceByLexeme(lex);
         continue;
       }
