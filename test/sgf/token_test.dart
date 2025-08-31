@@ -7,7 +7,7 @@ void main() {
     test('should track source position correctly', () {
       const contents = '(;B[aa]SZ[19]\n;AB[cc]\n[dd:ee])';
       final len = contents.length - 1;
-      final actual = const TokenIterable(contents).toList();
+      final actual = TokenIterable(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -62,7 +62,7 @@ void main() {
     test('should allow lower case properties', () {
       const contents = '(;CoPyright[blah])';
       final len = contents.length - 1;
-      final actual = const TokenIterable(contents).toList();
+      final actual = TokenIterable(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -76,7 +76,7 @@ void main() {
     test('should take new lines inside token values into account', () {
       const contents = '(;C[bl\nah])';
       final len = contents.length - 1;
-      final actual = const TokenIterable(contents).toList();
+      final actual = TokenIterable(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -90,7 +90,7 @@ void main() {
     test('should return invalid tokens', () {
       const contents = '(;C[hi]%[invalid])';
       final len = contents.length - 1;
-      final actual = const TokenIterable(contents).toList();
+      final actual = TokenIterable(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),

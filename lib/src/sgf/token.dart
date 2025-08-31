@@ -36,30 +36,64 @@ enum TokenType {
   invalid,
 }
 
-/// An iterable wrapper that tokenizes the given [text] when iterated.
-class TokenIterable extends Iterable<Token> {
+class Peekable<E> extends Iterable<E> {
+  final Iterable<E> _iterable;
+  late final Iterator<E> _it = _iterable.iterator;
+  E? _buffer;
+  bool _hasBuffer = false;
+
+  Peekable(Iterable<E> iterable) : _iterable = iterable;
+
+  E? peek() {
+    if (_hasBuffer) return _buffer;
+    if (!_it.moveNext()) return null;
+    _buffer = _it.current;
+    _hasBuffer = true;
+    return _buffer;
+  }
+
+  E? next() {
+    final v = peek();
+    _hasBuffer = false;
+    _buffer = null;
+    return v;
+  }
+
+  @override
+  Iterator<E> get iterator => _iterable.iterator;
+}
+
+class TokenIterable extends Peekable<Token> {
   final String text;
   final bool ignoreWhitespace;
   final bool emitInvalid;
   final bool enableProgress;
 
-  const TokenIterable(
+  TokenIterable(
     this.text, {
     this.ignoreWhitespace = true,
     this.emitInvalid = true,
     this.enableProgress = true,
-  });
+  }) : super(_scan(
+          text,
+          ignoreWhitespace: ignoreWhitespace,
+          emitInvalid: emitInvalid,
+          enableProgress: enableProgress,
+        ));
 
   // Reusable regexes
   static final RegExp reWhitespace = RegExp(r"\s+");
   static final RegExp reParen = RegExp(r"[()]");
   static final RegExp reSemicolon = RegExp(r";");
   static final RegExp rePropertyIdentifier = RegExp(r"[A-Za-z]+");
-  // SGF C value type: [ ... ] allowing escapes (e.g. \], \n), may contain newlines
   static final RegExp rePropertyValue = RegExp(r"\[(?:\\.|[^\]])*\]");
 
-  Iterable<Token> _scan() sync* {
-    final text = this.text;
+  static Iterable<Token> _scan(
+    String text, {
+    required bool ignoreWhitespace,
+    required bool emitInvalid,
+    required bool enableProgress,
+  }) sync* {
     final len = text.length;
     if (len == 0) return;
 
@@ -160,6 +194,4 @@ class TokenIterable extends Iterable<Token> {
     }
   }
 
-  @override
-  Iterator<Token> get iterator => _scan().iterator;
 }
