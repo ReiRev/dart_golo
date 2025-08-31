@@ -1,16 +1,30 @@
+/// Core data types and APIs for Go (Baduk/Weiqi) board logic.
 import 'dart:math';
 
+/// Type of a stone on the board.
 enum Stone {
   black,
   white,
 }
 
+/// A 0-based board coordinate.
+///
+/// - [x]: column index from the left, starting at 0
+/// - [y]: row index from the top, starting at 0
 typedef Vertex = ({int x, int y});
 
+/// Information about Ko (recapture ban).
+///
+/// - [stone]: the color that is currently forbidden to recapture
+/// - [vertex]: the Ko coordinate where recapture is forbidden
 typedef KoInfo = ({Stone stone, Vertex vertex});
 
+/// Reasons why a move is considered illegal.
 enum IllegalMoveReason { overwrite, ko, suicide, outOfBoard }
 
+/// Exception thrown for illegal moves.
+///
+/// Contains the [reason], the [vertex] attempted, and the [stone] played.
 class IllegalMoveException implements Exception {
   final IllegalMoveReason reason;
   final Vertex vertex;
@@ -22,12 +36,31 @@ class IllegalMoveException implements Exception {
       'IllegalMoveException(${reason.name} at ${vertex.x},${vertex.y} by $stone)';
 }
 
+/// Represents a Go board state and operations.
+///
+/// The board is stored as a 2D list `state[y][x]` where `null` means empty,
+/// and [Stone.black]/[Stone.white] represent stones.
+///
+/// Note:
+/// - The constructor does not defensively copy the provided [state]. If the
+///   caller mutates it afterwards, this [Board] will observe the change.
+/// - [set] and [clear] mutate this instance. [makeMove] returns a cloned board
+///   with the move applied and does not mutate this instance.
 class Board {
+  /// Two-dimensional board state `state[y][x]`. `null` represents an empty point.
   List<List<Stone?>> state;
   final Map<Stone, int> _captures = {Stone.black: 0, Stone.white: 0};
   KoInfo? _koInfo;
+
+  /// Column labels used by string conversions (letter I is skipped).
   static const alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 
+  /// Creates a board from an existing [state].
+  ///
+  /// - All rows must have the same length; otherwise throws [ArgumentError].
+  /// - Width and height must be at most [alpha].length; otherwise throws [ArgumentError].
+  /// - If [captures] is provided, initializes capture counts.
+  /// - If [koInfo] is provided, sets current Ko information.
   Board(this.state, {Map<Stone, int>? captures, KoInfo? koInfo}) {
     final int height = state.length;
     final int width = state[0].length;
@@ -51,24 +84,48 @@ class Board {
     }
   }
 
+  /// Creates an empty board of size [width] × [height].
+  /// If [height] is omitted, a square board is created.
   Board.fromDimension(int width, [int? height])
       : this(List.generate(
             height ?? width, (_) => List.generate(width, (_) => null)));
 
+  /// Number of rows (height).
   int get height => state.length;
+
+  /// Number of columns (width).
   int get width => state[0].length;
 
+  /// Returns the stone at [vertex], or `null` if empty or out of board.
   Stone? get(Vertex vertex) => has(vertex) ? state[vertex.y][vertex.x] : null;
+
+  /// Returns whether [vertex] lies on the board (0 ≤ x < width and 0 ≤ y < height).
   bool has(Vertex vertex) =>
       0 <= vertex.x && vertex.x < width && 0 <= vertex.y && vertex.y < height;
+
+  /// Returns whether the board is square.
   bool isSquare() => width == height;
+
+  /// Returns whether the board is empty (all points are `null`).
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
+  /// Sets [stone] at [vertex]. Use `null` to clear a point.
+  ///
+  /// This mutates the board. No bounds checking is performed.
   Board set(Vertex vertex, Stone? stone) {
     state[vertex.y][vertex.x] = stone;
     return this;
   }
 
+  /// Returns a new [Board] with [stone] played at [vertex].
+  ///
+  /// Does not mutate this instance. Captures are removed and tallied.
+  /// Parameters control which rule violations should throw [IllegalMoveException]:
+  /// - [preventOutOfBoard]: throw if [vertex] is out of board (default false).
+  ///   When false and out of board, a cloned board is returned unchanged.
+  /// - [preventSuicide]: throw on suicide moves.
+  /// - [preventOverwrite]: throw when playing on an occupied point.
+  /// - [preventKo]: throw when immediate Ko recapture is forbidden.
   Board makeMove(
     Vertex vertex,
     Stone stone, {
@@ -154,24 +211,31 @@ class Board {
     return move;
   }
 
+  /// Resets the board to an empty state (keeps dimensions).
   void clear() {
     state = List.generate(height, (_) => List.generate(width, (_) => null));
   }
 
+  /// Returns the number of stones captured by [player].
   int getCaptures(Stone player) {
     return _captures[player] ?? 0;
   }
 
+  /// Sets the capture count for [stone] to [value]. Returns `this` for chaining.
   Board setCaptures(Stone stone, int value) {
     _captures[stone] = value;
     return this;
   }
 
+  /// Returns the connected component (chain) of same-colored stones containing [vertex].
+  /// If [vertex] is empty or out of board, returns an empty list.
   List<Vertex> getChain(Vertex vertex) {
     final stone = get(vertex);
     return getConnectedComponent(vertex, (vertex) => get(vertex) == stone);
   }
 
+  /// Returns orthogonal neighbors (up, down, left, right) on the board.
+  /// Returns an empty list if [vertex] is out of board.
   List<Vertex> getNeighbors(Vertex vertex) {
     if (!has(vertex)) {
       return [];
@@ -186,6 +250,11 @@ class Board {
     ].where((vertex) => has(vertex)).toList();
   }
 
+  /// Depth-first search to collect a connected component starting at [vertex]
+  /// following the [predicate].
+  ///
+  /// Returns an empty list if [vertex] is out of board. The optional [result]
+  /// is used for recursion and should not be supplied by callers.
   List<Vertex> getConnectedComponent(
     Vertex vertex,
     bool Function(Vertex vertex) predicate, [
@@ -207,6 +276,8 @@ class Board {
     return result;
   }
 
+  /// Returns the unique liberties (adjacent empty points) of the chain at [vertex].
+  /// Returns an empty list for out-of-board or empty [vertex].
   List<Vertex> getLiberties(Vertex vertex) {
     if (!has(vertex) || get(vertex) == null) return [];
 
@@ -223,10 +294,13 @@ class Board {
     return liberties.toList();
   }
 
+  /// Returns the Manhattan distance between [v1] and [v2].
   int getDistance(Vertex v1, Vertex v2) {
     return (v1.x - v2.x).abs() + (v1.y - v2.y).abs();
   }
 
+  /// Returns whether the chain at [vertex] has at least one liberty.
+  /// Returns false for out-of-board or empty [vertex].
   bool hasLiberties(Vertex vertex, [Map<Vertex, bool>? visited]) {
     final stone = get(vertex);
     if (!has(vertex) || stone == null) return false;
@@ -244,6 +318,7 @@ class Board {
         .any((n) => hasLiberties(n, visited));
   }
 
+  /// Returns true if every chain on the board has at least one liberty.
   bool isValid() {
     final Map<Vertex, bool> liberties = {};
 
@@ -262,6 +337,9 @@ class Board {
     return true;
   }
 
+  /// Returns all stones of the same color as [vertex] that are reachable
+  /// through paths consisting of same-colored stones and empty points.
+  /// Returns an empty list for out-of-board or empty [vertex].
   List<Vertex> getRelatedChains(Vertex vertex) {
     if (!has(vertex) || get(vertex) == null) return [];
 
@@ -277,6 +355,9 @@ class Board {
     return area.where((vertex) => get(vertex) == stone).toList();
   }
 
+  /// Returns a new [Board] with optionally replaced [state], [captures], or [koInfo].
+  ///
+  /// If [state] is omitted, the current [state] is deep-copied.
   Board copyWith({
     List<List<Stone?>>? state,
     Map<Stone, int>? captures,
@@ -290,8 +371,11 @@ class Board {
     );
   }
 
+  /// Returns a deep copy of this board.
   Board clone() => copyWith();
 
+  /// Returns the list of coordinates that differ from [board],
+  /// or `null` if sizes differ.
   List<Vertex>? diff(Board board) {
     if (board.width != width || board.height != height) {
       return null;
@@ -308,6 +392,10 @@ class Board {
     return result;
   }
 
+  /// Returns candidate handicap placements.
+  ///
+  /// - [count]: number of desired handicap stones (truncated to available).
+  /// - [tygem]: if true, uses Tygem ordering for the first four corners.
   List<Vertex> getHandicapPlacement(int count, {bool tygem = false}) {
     if (min(width, height) <= 6 || count < 2) return [];
 
@@ -362,11 +450,15 @@ class Board {
     return result.take(count).toList();
   }
 
+  /// Converts [vertex] to a Go coordinate string like "D16".
+  /// Returns an empty string if [vertex] is out of board.
   String stringifyVertex(Vertex vertex) {
     if (!has(vertex)) return '';
     return '${alpha[vertex.x]}${height - vertex.y}';
   }
 
+  /// Parses a Go coordinate string like "D16" to a [Vertex].
+  /// Returns `null` if invalid or out of board.
   Vertex? parseVertex(String coord) {
     if (coord.length < 2) return null;
     final x = alpha.indexOf(coord[0].toUpperCase());
@@ -377,6 +469,7 @@ class Board {
     return has(vertex) ? vertex : null;
   }
 
+  /// Returns a human-readable textual representation of the board.
   @override
   String toString() {
     final buf = StringBuffer();
