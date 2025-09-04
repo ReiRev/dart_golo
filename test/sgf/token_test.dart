@@ -7,7 +7,7 @@ void main() {
     test('should track source position correctly', () {
       const contents = '(;B[aa]SZ[19]\n;AB[cc]\n[dd:ee])';
       final len = contents.length - 1;
-      final actual = TokenIterable(contents).toList();
+      final actual = TokenIterator(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -27,7 +27,7 @@ void main() {
     test('should take escaping values into account', () {
       var contents = '(;C[hello\\]world];C[hello\\\\];C[hello])';
       var len = contents.length - 1;
-      var actual = TokenIterable(contents).toList();
+      var actual = TokenIterator(contents).toList();
       var expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -45,7 +45,7 @@ void main() {
 
       contents = '(;C[\\];B[aa];W[bb])';
       len = contents.length - 1;
-      actual = TokenIterable(contents).toList();
+      actual = TokenIterator(contents).toList();
       expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -62,7 +62,7 @@ void main() {
     test('should allow lower case properties', () {
       const contents = '(;CoPyright[blah])';
       final len = contents.length - 1;
-      final actual = TokenIterable(contents).toList();
+      final actual = TokenIterator(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -76,7 +76,7 @@ void main() {
     test('should take new lines inside token values into account', () {
       const contents = '(;C[bl\nah])';
       final len = contents.length - 1;
-      final actual = TokenIterable(contents).toList();
+      final actual = TokenIterator(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),
@@ -90,7 +90,7 @@ void main() {
     test('should return invalid tokens', () {
       const contents = '(;C[hi]%[invalid])';
       final len = contents.length - 1;
-      final actual = TokenIterable(contents).toList();
+      final actual = TokenIterator(contents).toList();
       final expected = [
         Token(TokenType.parenthesis, '(', 0, 0, 0, 0 / len),
         Token(TokenType.semicolon, ';', 0, 1, 1, 1 / len),

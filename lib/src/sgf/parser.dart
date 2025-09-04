@@ -35,7 +35,7 @@ class Parser {
     onProgress ??= (_) {};
     onNodeCreated ??= (_) {};
 
-    final tokens = TokenIterable(text);
+    final tokens = TokenIterator(text);
     final root = _parseTokens(
       tokens,
       null,

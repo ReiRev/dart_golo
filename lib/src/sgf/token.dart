@@ -36,40 +36,47 @@ enum TokenType {
   invalid,
 }
 
-class Peekable<E> extends Iterable<E> {
-  final Iterable<E> _iterable;
-  late final Iterator<E> _it = _iterable.iterator;
-  E? _buffer;
-  bool _hasBuffer = false;
+class Peekable<E> implements Iterator<E> {
+  final List<E> _items;
+  int _index = -1; // before first element
 
-  Peekable(Iterable<E> iterable) : _iterable = iterable;
+  Peekable(Iterable<E> iterable) : _items = List<E>.from(iterable);
 
   E? peek() {
-    if (_hasBuffer) return _buffer;
-    if (!_it.moveNext()) return null;
-    _buffer = _it.current;
-    _hasBuffer = true;
-    return _buffer;
+    final nextIndex = _index + 1;
+    if (nextIndex >= _items.length) return null;
+    return _items[nextIndex];
   }
 
   E? next() {
-    final v = peek();
-    _hasBuffer = false;
-    _buffer = null;
-    return v;
+    if (!moveNext()) return null;
+    return _items[_index];
   }
 
   @override
-  Iterator<E> get iterator => _iterable.iterator;
+  bool moveNext() {
+    final nextIndex = _index + 1;
+    if (nextIndex >= _items.length) return false;
+    _index = nextIndex;
+    return true;
+  }
+
+  @override
+  E get current {
+    if (_index < 0 || _index >= _items.length) {
+      throw StateError('Iterator is not positioned on an element');
+    }
+    return _items[_index];
+  }
 }
 
-class TokenIterable extends Peekable<Token> {
+class TokenIterator extends Peekable<Token> {
   final String text;
   final bool ignoreWhitespace;
   final bool emitInvalid;
   final bool enableProgress;
 
-  TokenIterable(
+  TokenIterator(
     this.text, {
     this.ignoreWhitespace = true,
     this.emitInvalid = true,
@@ -80,6 +87,13 @@ class TokenIterable extends Peekable<Token> {
           emitInvalid: emitInvalid,
           enableProgress: enableProgress,
         ));
+
+  List<Token> toList() => _scan(
+        text,
+        ignoreWhitespace: ignoreWhitespace,
+        emitInvalid: emitInvalid,
+        enableProgress: enableProgress,
+      ).toList();
 
   // Reusable regexes
   static final RegExp reWhitespace = RegExp(r"\s+");
@@ -193,5 +207,4 @@ class TokenIterable extends Peekable<Token> {
       advanceByLexeme(invalidLex);
     }
   }
-
 }
