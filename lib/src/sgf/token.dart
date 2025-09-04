@@ -72,28 +72,10 @@ class Peekable<E> implements Iterator<E> {
 
 class TokenIterator extends Peekable<Token> {
   final String text;
-  final bool ignoreWhitespace;
-  final bool emitInvalid;
-  final bool enableProgress;
 
-  TokenIterator(
-    this.text, {
-    this.ignoreWhitespace = true,
-    this.emitInvalid = true,
-    this.enableProgress = true,
-  }) : super(_scan(
-          text,
-          ignoreWhitespace: ignoreWhitespace,
-          emitInvalid: emitInvalid,
-          enableProgress: enableProgress,
-        ));
+  TokenIterator(this.text) : super(_scan(text));
 
-  List<Token> toList() => _scan(
-        text,
-        ignoreWhitespace: ignoreWhitespace,
-        emitInvalid: emitInvalid,
-        enableProgress: enableProgress,
-      ).toList();
+  List<Token> toList() => _scan(text).toList();
 
   // Reusable regexes
   static final RegExp reWhitespace = RegExp(r"\s+");
@@ -102,12 +84,7 @@ class TokenIterator extends Peekable<Token> {
   static final RegExp rePropertyIdentifier = RegExp(r"[A-Za-z]+");
   static final RegExp rePropertyValue = RegExp(r"\[(?:\\.|[^\]])*\]");
 
-  static Iterable<Token> _scan(
-    String text, {
-    required bool ignoreWhitespace,
-    required bool emitInvalid,
-    required bool enableProgress,
-  }) sync* {
+  static Iterable<Token> _scan(String text) sync* {
     final len = text.length;
     if (len == 0) return;
 
@@ -124,7 +101,7 @@ class TokenIterator extends Peekable<Token> {
       int startRow,
       int startCol,
     ) {
-      final progress = enableProgress ? (startPos / denom) : 0.0;
+      final progress = (startPos / denom);
       return Token(type, lexeme, startRow, startCol, startPos, progress);
     }
 
@@ -154,9 +131,7 @@ class TokenIterator extends Peekable<Token> {
       if (ws != null) {
         final lex = ws.group(0)!;
         advanceByLexeme(lex);
-        if (!ignoreWhitespace) {
-          yield makeToken(TokenType.invalid, lex, pos - lex.length, row, col);
-        }
+        // ignoreWhitespace is always true -> skip emitting whitespace tokens
         continue;
       }
 
@@ -200,10 +175,9 @@ class TokenIterator extends Peekable<Token> {
       }
 
       final invalidLex = text[pos];
-      if (emitInvalid) {
-        yield makeToken(
-            TokenType.invalid, invalidLex, startPos, startRow, startCol);
-      }
+      // emitInvalid is always true -> always emit invalid token
+      yield makeToken(
+          TokenType.invalid, invalidLex, startPos, startRow, startCol);
       advanceByLexeme(invalidLex);
     }
   }
