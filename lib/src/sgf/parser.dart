@@ -5,9 +5,6 @@ import '../game_tree.dart';
 /// The default is a simple sequence 0,1,2,...
 typedef IdGenerator = int Function();
 
-/// Callback to report parse progress, in the range 0.0–1.0.
-typedef ProgressCallback = void Function(double progress);
-
 /// Callback invoked whenever a node is finalized/created.
 typedef NodeCallback = void Function(Node node);
 
@@ -41,14 +38,12 @@ class Parser {
   GameTree parse(
     String text, {
     IdGenerator? getId,
-    ProgressCallback? onProgress,
     NodeCallback? onNodeCreated,
   }) {
     getId ??= (() {
       var id = 0;
       return () => id++;
     })();
-    onProgress ??= (_) {};
     onNodeCreated ??= (_) {};
 
     final tokens = TokenIterator(text);
@@ -56,7 +51,6 @@ class Parser {
       tokens,
       null,
       getId: getId,
-      onProgress: onProgress,
       onNodeCreated: onNodeCreated,
     );
 
@@ -74,7 +68,6 @@ class Parser {
     Peekable<Token> tokens,
     int? parentId, {
     required IdGenerator getId,
-    required ProgressCallback onProgress,
     required NodeCallback onNodeCreated,
   }) {
     Node? anchor;
@@ -157,7 +150,6 @@ class Parser {
       if (tok == null) break;
       final type = tok.type;
       final value = tok.value;
-      final progress = tok.progress;
 
       if (type == TokenType.parenthesis && value == '(') {
         tokens.next();
@@ -165,14 +157,12 @@ class Parser {
           tokens,
           node.id,
           getId: getId,
-          onProgress: onProgress,
           onNodeCreated: onNodeCreated,
         );
         if (child != null) {
           node.children.add(child);
         }
       } else if (type == TokenType.parenthesis && value == ')') {
-        onProgress(progress);
         break;
       }
 
