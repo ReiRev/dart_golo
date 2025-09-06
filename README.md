@@ -1,7 +1,9 @@
 # golo — Go board logic for Dart
 A lightweight, test‑covered package that implements Go (Igo/Weiqi/Baduk) board rules and utilities in pure Dart.
 
-## Example REPL
+## Examples
+
+### REPL
 An interactive REPL is provided for quick testing and demos.
 
 Run:
@@ -21,23 +23,30 @@ Inside the REPL (type `help`):
 
 The REPL uses the same coordinate system as the library.
 
-## Design Notes
-- Board stores `state[y][x]` as `Stone?` (`null` = empty).
-- `makeMove` clones before applying to keep functional usage simple; `set` mutates for setup/utility scenarios.
-- Column “I” is skipped to match SGF/Go software conventions.
+### SGF Player
+A minimal SGF player that parses an SGF file and lets you step through the main line move-by-move on the console.
 
-## Attribution
-- This library is a Dart port inspired by and partially derived from the JavaScript project “@sabaki/go-board” by SabakiHQ:
-  https://github.com/SabakiHQ/go-board
+Run with the bundled Lee Sedol vs AlphaGo SGF:
+
+```bash
+dart run example/sgf_player.dart
+```
+
+Or provide your own SGF path:
+
+```bash
+dart run example/sgf_player.dart path/to/game.sgf
+```
+
+Controls:
+- Up/Down arrows: step back/forward (TTY environments)
+- `j`/`k` + Enter: forward/back (non‑TTY fallback)
+- `q`: quit
+
+Details:
+- Follows only the first variation (main line); ignores branches.
+- Displays the current node’s `Node.data` under the board for quick inspection.
+- Honors `SZ` (board size) and initial setup properties `AB`/`AW`/`AE`.
 
 ## License
-- MIT License. Portions adapted from “@sabaki/go-board” (MIT). See `LICENSE` for third‑party notices.
-
-**Attribution**
-- This library is a Dart port inspired by and partially derived from the JavaScript project "@sabaki/go-board" by SabakiHQ:
-  https://github.com/SabakiHQ/go-board
-
-See the License section for details about third‑party notices.
-
-**License**
-- Licensed under the MIT License. This project includes portions adapted from "@sabaki/go-board" (MIT), and the original MIT license and copyright notice are included in `LICENSE`.
+MIT License. Portions adapted from [SabakiHQ/go-board](https://github.com/SabakiHQ/go-board) (MIT) and [SabakiHQ/sgf](https://github.com/SabakiHQ/sgf) (MIT). See `LICENSE` for third‑party notices.
