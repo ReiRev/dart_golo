@@ -1,5 +1,5 @@
 import 'token.dart';
-import 'node.dart';
+import '../game_tree.dart';
 
 /// Callback that generates node IDs.
 /// The default is a simple sequence 0,1,2,...
@@ -38,10 +38,9 @@ class Parser {
   /// Parses [text] and returns the list of root nodes. If the input contains
   /// a node sequence outside parentheses, a dummy anchor (with `id == null`)
   /// is used and its children are returned.
-  List<Node> parse(
+  GameTree parse(
     String text, {
     IdGenerator? getId,
-    Map<int, Node>? dictionary,
     ProgressCallback? onProgress,
     NodeCallback? onNodeCreated,
   }) {
@@ -57,13 +56,13 @@ class Parser {
       tokens,
       null,
       getId: getId,
-      dictionary: dictionary,
       onProgress: onProgress,
       onNodeCreated: onNodeCreated,
     );
 
-    if (root == null) return [];
-    return root.id == null ? root.children : [root];
+    if (root == null) return GameTree(const []);
+    final nodes = root.id == null ? root.children : [root];
+    return GameTree(nodes);
   }
 
   /// Recursive-descent parsing of a sequence/variation.
@@ -75,7 +74,6 @@ class Parser {
     Peekable<Token> tokens,
     int? parentId, {
     required IdGenerator getId,
-    Map<int, Node>? dictionary,
     required ProgressCallback onProgress,
     required NodeCallback onNodeCreated,
   }) {
@@ -100,9 +98,6 @@ class Parser {
       if (type == TokenType.semicolon || node == null) {
         final lastNode = node;
         node = Node(getId(), lastNode == null ? parentId : lastNode.id, {}, []);
-        if (node.id != null && dictionary != null) {
-          dictionary[node.id!] = node;
-        }
         if (lastNode != null) {
           onNodeCreated(lastNode);
           lastNode.children.add(node);
@@ -170,7 +165,6 @@ class Parser {
           tokens,
           node.id,
           getId: getId,
-          dictionary: dictionary,
           onProgress: onProgress,
           onNodeCreated: onNodeCreated,
         );
