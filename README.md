@@ -48,23 +48,5 @@ Details:
 - Displays the current node’s `Node.data` under the board for quick inspection.
 - Honors `SZ` (board size) and initial setup properties `AB`/`AW`/`AE`.
 
-## Design Notes
-- Board stores `state[y][x]` as `Stone?` (`null` = empty).
-- `makeMove` clones before applying to keep functional usage simple; `set` mutates for setup/utility scenarios.
-- Column “I” is skipped to match SGF/Go software conventions.
-
-## Attribution
-- This library is a Dart port inspired by and partially derived from the JavaScript project “@sabaki/go-board” by SabakiHQ:
-  https://github.com/SabakiHQ/go-board
-
 ## License
-- MIT License. Portions adapted from “@sabaki/go-board” (MIT). See `LICENSE` for third‑party notices.
-
-**Attribution**
-- This library is a Dart port inspired by and partially derived from the JavaScript project "@sabaki/go-board" by SabakiHQ:
-  https://github.com/SabakiHQ/go-board
-
-See the License section for details about third‑party notices.
-
-**License**
-- Licensed under the MIT License. This project includes portions adapted from "@sabaki/go-board" (MIT), and the original MIT license and copyright notice are included in `LICENSE`.
+MIT License. Portions adapted from [SabakiHQ/go-board](https://github.com/SabakiHQ/go-board) (MIT) and [SabakiHQ/sgf](https://github.com/SabakiHQ/sgf) (MIT). See `LICENSE` for third‑party notices.
