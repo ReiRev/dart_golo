@@ -2,3 +2,4 @@
 library golo;
 
 export 'src/go_board.dart';
+export 'src/game.dart';
