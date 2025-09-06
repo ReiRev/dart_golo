@@ -27,7 +27,8 @@ void main(List<String> args) {
 
   var board = Board.fromDimension(width, height);
 
-  var handicap = int.tryParse(results['handicap']) ?? 0;
+  final handicapStr = results['handicap'] as String?;
+  var handicap = handicapStr != null ? int.tryParse(handicapStr) ?? 0 : 0;
   final tygem = results['tygem'] == true;
   if (handicap > 0) {
     final spots = board.getHandicapPlacement(handicap, tygem: tygem);
