@@ -1,10 +1,18 @@
 import 'token.dart';
 import 'node.dart';
 
+/// Callback that generates node IDs.
+/// The default is a simple sequence 0,1,2,...
 typedef IdGenerator = int Function();
+
+/// Callback to report parse progress, in the range 0.0–1.0.
 typedef ProgressCallback = void Function(double progress);
+
+/// Callback invoked whenever a node is finalized/created.
 typedef NodeCallback = void Function(Node node);
 
+/// Unescapes SGF backslash-escaping.
+/// A backslash escapes the next single character (including `]`, `\\`, `\n`, etc.).
 String _unescapeSgfValue(String s) {
   // SGF escaping: backslash escapes the next character (including ']','\','\n', etc.)
   final buf = StringBuffer();
@@ -20,7 +28,16 @@ String _unescapeSgfValue(String s) {
   return buf.toString();
 }
 
+/// Lightweight parser that converts SGF into a node tree.
+///
+/// - `;` starts a node, `(` and `)` denote variation start/end.
+/// - Property identifiers are normalized by extracting uppercase letters only.
+/// - Property values are the text inside `[...]` with SGF escapes unescaped.
+/// - Unexpected characters result in a [StateError].
 class Parser {
+  /// Parses [text] and returns the list of root nodes. If the input contains
+  /// a node sequence outside parentheses, a dummy anchor (with `id == null`)
+  /// is used and its children are returned.
   List<Node> parse(
     String text, {
     IdGenerator? getId,
@@ -49,6 +66,11 @@ class Parser {
     return root.id == null ? root.children : [root];
   }
 
+  /// Recursive-descent parsing of a sequence/variation.
+  ///
+  /// [parentId] is the ID of the parent node. Returns the anchor node of the
+  /// just-parsed linear sequence; at the top level this may be a dummy anchor
+  /// (with `id == null`).
   Node? _parseTokens(
     Peekable<Token> tokens,
     int? parentId, {

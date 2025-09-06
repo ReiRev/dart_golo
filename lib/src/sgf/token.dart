@@ -1,3 +1,12 @@
+/// Token used while parsing SGF text.
+///
+/// - [type]: Kind of token.
+/// - [value]: Raw matched lexeme (for example `;`, `AB`, `[aa]`).
+/// - [row], [col]: 0-based line and column in the input.
+/// - [pos]: Offset from the start of the input in UTF-16 code units.
+/// - [progress]: Normalized progress across the input (0.0–1.0).
+///
+/// Equality and hashCode use all fields.
 class Token {
   final TokenType type;
   final String value;
@@ -28,26 +37,43 @@ class Token {
   int get hashCode => Object.hash(type, value, row, col, pos, progress);
 }
 
+/// Kinds of tokens recognized in SGF.
 enum TokenType {
+  /// Parenthesis: `(` or `)`.
   parenthesis,
+
+  /// Node start marker `;`.
   semicolon,
+
+  /// Property identifier (e.g. `B`, `W`, `AB`, `SZ`).
   propertyIdentifier,
+
+  /// Bracketed value (may contain escaped text).
   propertyValue,
+
+  /// Single character that doesn't match any rule; the parser treats it as an error.
   invalid,
 }
 
+/// Iterator with lookahead capability.
+///
+/// - [peek] returns the next element without consuming it.
+/// - [next] advances by one and returns that element, or `null` at the end.
+/// - [moveNext] and [current] follow Dart's `Iterator` contract.
 class Peekable<E> implements Iterator<E> {
   final List<E> _items;
   int _index = -1; // before first element
 
   Peekable(Iterable<E> iterable) : _items = List<E>.from(iterable);
 
+  /// Returns the next element without consuming it, or `null` at the end.
   E? peek() {
     final nextIndex = _index + 1;
     if (nextIndex >= _items.length) return null;
     return _items[nextIndex];
   }
 
+  /// Advances by one and returns that element, or `null` at the end.
   E? next() {
     if (!moveNext()) return null;
     return _items[_index];
@@ -70,11 +96,18 @@ class Peekable<E> implements Iterator<E> {
   }
 }
 
+/// Iterator that turns SGF input text into a stream of tokens.
+///
+/// Whitespace is skipped. Parentheses, semicolons, property identifiers,
+/// and bracketed property values are recognized. Property values follow SGF's
+/// backslash-escape rules and may contain `]` and newlines as part of a single
+/// token.
 class TokenIterator extends Peekable<Token> {
   final String text;
 
   TokenIterator(this.text) : super(_scan(text));
 
+  /// Expands all tokens into a list.
   List<Token> toList() => _scan(text).toList();
 
   // Reusable regexes

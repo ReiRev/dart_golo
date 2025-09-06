@@ -1,3 +1,10 @@
+/// A node in an SGF game tree.
+///
+/// - [id]: Unique node ID. The dummy anchor for a root sequence may be `null`.
+/// - [parentId]: Parent node ID. Nodes directly under the root may have `null`.
+/// - [data]: Map of SGF properties. Keys are identifiers (e.g. `B`, `W`, `AB`, `SZ`),
+///   values are arrays holding zero or more values for that property.
+/// - [children]: Variations (branches) represented as child nodes.
 class Node {
   int? id;
   int? parentId;
