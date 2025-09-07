@@ -200,5 +200,36 @@ void main() {
         expect(game.whiteCountry, null);
       });
     });
+
+    group('play', () {
+      test('advances board and alternates turns', () {
+        final game = Game();
+        expect(game.currentPlayer, Stone.black);
+
+        final v1 = (x: 3, y: 3);
+        game.play(v1);
+        var board = game.board;
+        expect(board.get(v1), Stone.black);
+        expect(game.currentPlayer, Stone.white);
+
+        final v2 = (x: 4, y: 3);
+        game.play(v2);
+        board = game.board;
+        expect(board.get(v2), Stone.white);
+        expect(game.currentPlayer, Stone.black);
+      });
+
+      test('prevents overwrite on same vertex', () {
+        final game = Game();
+        final v = (x: 10, y: 10);
+        game.play(v);
+        expect(
+          () => game.play(v),
+          throwsA(predicate((e) =>
+              e is IllegalMoveException &&
+              e.reason == IllegalMoveReason.overwrite)),
+        );
+      });
+    });
   });
 }

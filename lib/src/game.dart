@@ -6,6 +6,8 @@ class Game {
   GameTree _gameTree;
   late final Node _rootNode;
   late Node _currentNode;
+  Stone _currentPlayer = Stone.black;
+  int _nextNodeId = 1;
 
   Game()
       : _currentBoard = Board.fromDimension(19, 19),
@@ -29,6 +31,8 @@ class Game {
   }
 
   Board get board => _currentBoard.clone();
+
+  Stone get currentPlayer => _currentPlayer;
 
   String? _getMeta(String key) {
     final values = _rootNode.data[key];
@@ -154,4 +158,61 @@ class Game {
   /// Non-standard: Byo-yomi period length. Prefer describing in `OT` for portability.
   String? get byoYomiLength => _getMeta('LT');
   set byoYomiLength(String? value) => _setMeta('LT', value);
+
+  /// Plays a move for the current player at [vertex].
+  ///
+  /// - Enforces basic rules (out-of-board, overwrite, suicide, ko) and throws
+  ///   [IllegalMoveException] when violated.
+  /// - Updates the internal SGF tree by appending a node to the current line.
+  void play(Vertex vertex) {
+    // Apply the move to produce a new board state.
+    _currentBoard = _currentBoard.makeMove(
+      vertex,
+      _currentPlayer,
+      preventOutOfBoard: true,
+      preventOverwrite: true,
+      preventSuicide: true,
+      preventKo: true,
+    );
+
+    // Append a node to the current game tree branch.
+    final key = _currentPlayer == Stone.black ? 'B' : 'W';
+    final sgfCoord = _toSgf(vertex);
+    final node = Node(
+      _nextNodeId++,
+      _currentNode.id,
+      {
+        key: [sgfCoord]
+      },
+      [],
+    );
+    _currentNode.children.add(node);
+    _currentNode = node;
+
+    // Alternate player.
+    _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
+  }
+
+  /// Passes the current player's turn.
+  void pass() {
+    final key = _currentPlayer == Stone.black ? 'B' : 'W';
+    final node = Node(
+      _nextNodeId++,
+      _currentNode.id,
+      {
+        key: ['']
+      }, // Empty value represents pass in SGF
+      [],
+    );
+    _currentNode.children.add(node);
+    _currentNode = node;
+    _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
+  }
+
+  /// Converts a 0-based vertex to an SGF coordinate string (e.g. aa, dp).
+  /// Top-left (0,0) -> 'aa'.
+  String _toSgf(Vertex v) {
+    String c(int n) => String.fromCharCode('a'.codeUnitAt(0) + n);
+    return '${c(v.x)}${c(v.y)}';
+  }
 }
