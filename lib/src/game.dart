@@ -176,15 +176,11 @@ class Game {
     );
 
     // Append a node to the current game tree branch.
-    final key = _currentPlayer == Stone.black ? 'B' : 'W';
-    final sgfCoord = _toSgf(vertex);
-    final node = Node(
+    final node = Node.move(
       _nextNodeId++,
       _currentNode.id,
-      {
-        key: [sgfCoord]
-      },
-      [],
+      _currentPlayer,
+      vertex,
     );
     _currentNode.children.add(node);
     _currentNode = node;
@@ -197,14 +193,10 @@ class Game {
 
   /// Passes the current player's turn.
   void pass() {
-    final key = _currentPlayer == Stone.black ? 'B' : 'W';
-    final node = Node(
+    final node = Node.pass(
       _nextNodeId++,
       _currentNode.id,
-      {
-        key: ['']
-      }, // Empty value represents pass in SGF
-      [],
+      _currentPlayer,
     );
     _currentNode.children.add(node);
     _currentNode = node;
@@ -213,10 +205,5 @@ class Game {
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
-  /// Converts a 0-based vertex to an SGF coordinate string (e.g. aa, dp).
-  /// Top-left (0,0) -> 'aa'.
-  String _toSgf(Vertex v) {
-    String c(int n) => String.fromCharCode('a'.codeUnitAt(0) + n);
-    return '${c(v.x)}${c(v.y)}';
-  }
+  // SGF coordinate conversion is handled by Node helpers.
 }

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'go_board.dart';
 
 /// A node in an SGF game tree.
 ///
@@ -10,7 +11,7 @@ import 'dart:collection';
 class Node {
   int id;
   int? parentId;
-  Map<String, List<String>> data;
+  Map<String, List<String>> data = {};
   List<Node> children;
 
   Node(this.id, this.parentId, this.data, this.children);
@@ -29,6 +30,58 @@ class Node {
     } else {
       data[key] = [value];
     }
+  }
+
+  /// Adds a move for [color] at [vertex] to this node using SGF `B`/`W`.
+  void addStone(Stone color, Vertex vertex) {
+    final key = color == Stone.black ? 'B' : 'W';
+    data[key] = [_toSgfCoord(vertex)];
+  }
+
+  /// Adds a pass move for [color] (empty value for `B`/`W`).
+  void addPass(Stone color) {
+    final key = color == Stone.black ? 'B' : 'W';
+    data[key] = [''];
+  }
+
+  /// Convenience for Black move.
+  void addBlack(Vertex vertex) => addStone(Stone.black, vertex);
+
+  /// Convenience for White move.
+  void addWhite(Vertex vertex) => addStone(Stone.white, vertex);
+
+  /// Named constructor that creates a node representing a move.
+  Node.move(this.id, this.parentId, Stone color, Vertex vertex)
+      : data = <String, List<String>>{},
+        children = <Node>[] {
+    addStone(color, vertex);
+  }
+
+  /// Named constructor that creates a node representing a pass.
+  Node.pass(this.id, this.parentId, Stone color)
+      : data = <String, List<String>>{},
+        children = <Node>[] {
+    addPass(color);
+  }
+
+  /// Named constructor for a Black move node.
+  Node.black(this.id, this.parentId, Vertex vertex)
+      : data = <String, List<String>>{},
+        children = <Node>[] {
+    addStone(Stone.black, vertex);
+  }
+
+  /// Named constructor for a White move node.
+  Node.white(this.id, this.parentId, Vertex vertex)
+      : data = <String, List<String>>{},
+        children = <Node>[] {
+    addStone(Stone.white, vertex);
+  }
+
+  // Converts a 0-based vertex to an SGF coordinate string (e.g., aa, dp).
+  static String _toSgfCoord(Vertex v) {
+    String c(int n) => String.fromCharCode('a'.codeUnitAt(0) + n);
+    return '${c(v.x)}${c(v.y)}';
   }
 
   @override
