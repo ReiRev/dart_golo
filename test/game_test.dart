@@ -293,5 +293,36 @@ void main() {
         );
       });
     });
+
+    group('boardAt', () {
+      test('returns root snapshot for nodeId 0', () {
+        final game = Game();
+        final rootBoard = game.boardAt(0);
+        expect(rootBoard.width, 19);
+        expect(rootBoard.height, 19);
+        expect(rootBoard.isEmpty(), true);
+      });
+
+      test('returns immutable snapshots for each move', () {
+        final game = Game();
+        final b1 = (x: 3, y: 3);
+        final w1 = (x: 4, y: 3);
+
+        game.play(b1); // nodeId 1
+        var snap1 = game.boardAt(1);
+        expect(snap1.get(b1), Stone.black);
+        expect(snap1.get(w1), isNull);
+
+        game.play(w1); // nodeId 2
+        var snap2 = game.boardAt(2);
+        expect(snap2.get(b1), Stone.black);
+        expect(snap2.get(w1), Stone.white);
+
+        // Ensure snapshot at node 1 is unchanged by later moves.
+        snap1 = game.boardAt(1);
+        expect(snap1.get(b1), Stone.black);
+        expect(snap1.get(w1), isNull);
+      });
+    });
   });
 }

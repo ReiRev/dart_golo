@@ -8,12 +8,15 @@ class Game {
   late Node _currentNode;
   Stone _currentPlayer = Stone.black;
   int _nextNodeId = 1;
+  final Map<int, Board> _boardHistory = <int, Board>{};
 
   Game()
       : _currentBoard = Board.fromDimension(19, 19),
         _gameTree = GameTree([Node(0, null, {}, [])]) {
     _rootNode = _gameTree[0];
     _currentNode = _gameTree[0];
+    // Record initial empty board snapshot at root node id.
+    _boardHistory[_rootNode.id] = _currentBoard.clone();
 
     // Initialize root metadata (e.g., board size) once.
     // The type of the game.
@@ -28,6 +31,16 @@ class Game {
     final h = _currentBoard.height;
     final sz = w == h ? '$w' : '$w:$h';
     _rootNode.set('SZ', sz);
+  }
+
+  /// Returns a snapshot of the board at the node with [nodeId].
+  /// Throws [StateError] if no snapshot is recorded for [nodeId].
+  Board boardAt(int nodeId) {
+    final b = _boardHistory[nodeId];
+    if (b == null) {
+      throw StateError('No board snapshot for nodeId=$nodeId');
+    }
+    return b.clone();
   }
 
   Board get board => _currentBoard.clone();
@@ -175,6 +188,8 @@ class Game {
     );
     _currentNode.children.add(node);
     _currentNode = node;
+    // Record snapshot for this node.
+    _boardHistory[node.id] = _currentBoard.clone();
 
     // Alternate player.
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
@@ -193,6 +208,8 @@ class Game {
     );
     _currentNode.children.add(node);
     _currentNode = node;
+    // Record snapshot (same position) for this node as well.
+    _boardHistory[node.id] = _currentBoard.clone();
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
