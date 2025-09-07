@@ -11,8 +11,12 @@ class Game {
   int _nextNodeId = 1;
   final Map<int, Board> _boardHistory = <int, Board>{};
 
-  Game()
-      : _currentBoard = Board.fromDimension(19, 19),
+  /// Creates a new game with a configurable board size.
+  ///
+  /// - [width]: board width. Defaults to 19.
+  /// - [height]: board height. When omitted, a square board is created.
+  Game({int width = 19, int? height})
+      : _currentBoard = Board.fromDimension(width, height),
         _gameTree = GameTree([Node(0, null, {}, [])]) {
     _rootNode = _gameTree[0];
     _currentNode = _gameTree[0];
