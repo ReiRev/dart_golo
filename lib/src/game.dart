@@ -11,6 +11,7 @@ class Game {
   Stone _currentPlayer = Stone.black;
   int _nextNodeId = 1;
   final Map<int, Board> _boardHistory = <int, Board>{};
+  final Map<int, Node> _nodesById = <int, Node>{};
 
   /// Creates a new game with a configurable board size.
   ///
@@ -23,6 +24,7 @@ class Game {
     _currentNode = _gameTree[0];
     // Record initial empty board snapshot at root node id.
     _boardHistory[_rootNode.id] = _currentBoard.clone();
+    _nodesById[_rootNode.id] = _rootNode;
 
     // Initialize root metadata (e.g., board size) once.
     // The type of the game.
@@ -192,6 +194,7 @@ class Game {
     _currentNode = node;
     // Record snapshot for this node.
     _boardHistory[node.id] = _currentBoard.clone();
+    _nodesById[node.id] = node;
 
     // Alternate player.
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
@@ -208,6 +211,7 @@ class Game {
     _currentNode = node;
     // Record snapshot (same position) for this node as well.
     _boardHistory[node.id] = _currentBoard.clone();
+    _nodesById[node.id] = node;
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
@@ -279,6 +283,35 @@ class Game {
     }
 
     return game;
+  }
+
+  bool get canUndo => _currentNode.id != _rootNode.id;
+
+  /// Undo the last move/pass, moving back to the parent node.
+  ///
+  /// - Returns a clone of the board after undo on success.
+  /// - Returns `null` if already at the root (nothing to undo).
+  Board? undo() {
+    if (!canUndo) return null;
+    final undone = _currentNode;
+    final parentId = undone.parentId;
+    if (parentId == null) return null;
+    final parent = _nodesById[parentId] ?? _rootNode;
+
+    // Determine undone color from node data (B or W)
+    Stone? undoneColor;
+    if (undone.data.containsKey('B')) {
+      undoneColor = Stone.black;
+    } else if (undone.data.containsKey('W')) {
+      undoneColor = Stone.white;
+    }
+
+    _currentNode = parent;
+    _currentBoard = boardAt(parent.id);
+    if (undoneColor != null) {
+      _currentPlayer = undoneColor;
+    }
+    return _currentBoard.clone();
   }
 
   static (int, int) _parseSize(List<String>? values) {

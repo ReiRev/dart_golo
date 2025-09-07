@@ -359,7 +359,63 @@ void main() {
 
       // SGF output should include the move comment
       final out = game.toSgf(linebreak: '');
-      expect(out.contains('C[hello]'), isTrue);
+      expect(out.contains('C[hello]'), true);
+    });
+  });
+
+  group('undo', () {
+    test('rewinds a normal move and returns board', () {
+      final game = Game();
+      game.play((x: 3, y: 3)); // B
+      game.play((x: 4, y: 3)); // W
+      final snapshot = game.board; // board after two moves
+      game.play((x: 5, y: 3)); // B
+
+      final undone = game.undo();
+      expect(undone, isNotNull);
+
+      final cur = game.board;
+      final diff = cur.diff(snapshot);
+      expect(diff, isNotNull);
+      expect(diff!.isEmpty, true);
+      expect(game.currentPlayer, Stone.black); // undone B, so B to play
+    });
+
+    test('handles pass correctly and returns board', () {
+      final game = Game();
+      game.play((x: 10, y: 10)); // B
+      final snapshot = game.board;
+      game.pass(); // W pass
+
+      final undone = game.undo();
+      expect(undone, isNotNull);
+
+      final cur = game.board;
+      final diff = cur.diff(snapshot);
+      expect(diff, isNotNull);
+      expect(diff!.isEmpty, true);
+      expect(game.currentPlayer, Stone.white); // undone W pass, so W to play
+    });
+
+    test('returns null at root and does nothing', () {
+      final game = Game();
+      final empty = game.board;
+      final undone = game.undo();
+      expect(undone, isNull);
+      expect(game.currentPlayer, Stone.black);
+      final cur = game.board;
+      final diff = cur.diff(empty);
+      expect(diff, isNotNull);
+      expect(diff!.isEmpty, true);
+    });
+
+    test('can undo multiple times back to root', () {
+      final game = Game();
+      game.play((x: 3, y: 3));
+      game.play((x: 4, y: 3));
+      expect(game.undo(), isNotNull); // back to after B
+      expect(game.undo(), isNotNull); // back to root
+      expect(game.undo(), isNull); // already at root
     });
   });
 }
