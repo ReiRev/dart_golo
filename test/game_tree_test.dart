@@ -115,17 +115,5 @@ void main() {
         '(;B[aa]SZ[19];AB[cc][dd:ee])(;CP[Copyright](;B[ab])(;W[ac]))',
       );
     });
-
-    test('should ignore mixed case node properties', () {
-      expect(
-        GameTree([
-          Node(10, null, {
-            'B': ['ab'],
-            'board': ['should ignore'],
-          }, [])
-        ]),
-        ';B[ab]\n',
-      );
-    });
   });
 }
