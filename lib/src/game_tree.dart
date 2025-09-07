@@ -15,6 +15,22 @@ class Node {
 
   Node(this.id, this.parentId, this.data, this.children);
 
+  /// Returns the first value of the SGF property [key], or `null` if absent.
+  String? get(String key) {
+    final values = data[key];
+    return (values != null && values.isNotEmpty) ? values.first : null;
+  }
+
+  /// Sets the SGF property [key] to a single [value].
+  /// If [value] is `null` or empty, removes the property.
+  void set(String key, String? value) {
+    if (value == null || value.isEmpty) {
+      data.remove(key);
+    } else {
+      data[key] = [value];
+    }
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

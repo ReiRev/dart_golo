@@ -17,147 +17,134 @@ class Game {
 
     // Initialize root metadata (e.g., board size) once.
     // The type of the game.
-    _rootNode.data['GM'] = ['1'];
+    _rootNode.set('GM', '1');
     // SGF format.
-    _rootNode.data['FF'] = ['4'];
+    _rootNode.set('FF', '4');
     // Charset
-    _rootNode.data['CA'] = ['UTF-8'];
+    _rootNode.set('CA', 'UTF-8');
     // Application (Name:Version)
-    _rootNode.data['AP'] = ['Dart Golo'];
+    _rootNode.set('AP', 'Dart Golo');
     final w = _currentBoard.width;
     final h = _currentBoard.height;
     final sz = w == h ? '$w' : '$w:$h';
-    _rootNode.data['SZ'] = [sz];
+    _rootNode.set('SZ', sz);
   }
 
   Board get board => _currentBoard.clone();
 
   Stone get currentPlayer => _currentPlayer;
 
-  String? _getMeta(String key) {
-    final values = _rootNode.data[key];
-    return (values != null && values.isNotEmpty) ? values.first : null;
-  }
-
-  void _setMeta(String key, String? value) {
-    if (value == null || value.isEmpty) {
-      _rootNode.data.remove(key);
-    } else {
-      _rootNode.data[key] = [value];
-    }
-  }
-
   // ---- Common root metadata accessors ----
   /// SGF `RU`: Ruleset name. Examples: `Japanese`, `Chinese`, `AGA`.
-  String? get rule => _getMeta('RU');
-  set rule(String? value) => _setMeta('RU', value);
+  String? get rule => _rootNode.get('RU');
+  set rule(String? value) => _rootNode.set('RU', value);
 
   /// SGF `AP`: Application name and version (e.g. `Name:Version`). Default is `Dart Golo`.
-  String? get application => _getMeta('AP');
-  set application(String? value) => _setMeta('AP', value);
+  String? get application => _rootNode.get('AP');
+  set application(String? value) => _rootNode.set('AP', value);
 
   /// SGF `CA`: Charset for SimpleText/Text (e.g. `UTF-8`).
-  String? get charset => _getMeta('CA');
-  set charset(String? value) => _setMeta('CA', value);
+  String? get charset => _rootNode.get('CA');
+  set charset(String? value) => _rootNode.set('CA', value);
 
   /// SGF `EV`: Event/tournament name.
-  String? get event => _getMeta('EV');
-  set event(String? value) => _setMeta('EV', value);
+  String? get event => _rootNode.get('EV');
+  set event(String? value) => _rootNode.set('EV', value);
 
   /// SGF `RO`: Round information (e.g. `Game 1`, `Final`).
-  String? get round => _getMeta('RO');
-  set round(String? value) => _setMeta('RO', value);
+  String? get round => _rootNode.get('RO');
+  set round(String? value) => _rootNode.set('RO', value);
 
   /// SGF `PC`: Place/location.
-  String? get place => _getMeta('PC');
-  set place(String? value) => _setMeta('PC', value);
+  String? get place => _rootNode.get('PC');
+  set place(String? value) => _rootNode.set('PC', value);
 
   /// SGF `DT`: Date(s) of the game.
-  String? get date => _getMeta('DT');
-  set date(String? value) => _setMeta('DT', value);
+  String? get date => _rootNode.get('DT');
+  set date(String? value) => _rootNode.set('DT', value);
 
   // Players, ranks, teams, countries
   /// SGF `PB`: Black player name.
-  String? get playerBlack => _getMeta('PB');
-  set playerBlack(String? value) => _setMeta('PB', value);
+  String? get playerBlack => _rootNode.get('PB');
+  set playerBlack(String? value) => _rootNode.set('PB', value);
 
   /// SGF `PW`: White player name.
-  String? get playerWhite => _getMeta('PW');
-  set playerWhite(String? value) => _setMeta('PW', value);
+  String? get playerWhite => _rootNode.get('PW');
+  set playerWhite(String? value) => _rootNode.set('PW', value);
 
   /// SGF `BR`: Black rank (e.g. `9d`, `1k`, `6p`).
-  String? get blackRank => _getMeta('BR');
-  set blackRank(String? value) => _setMeta('BR', value);
+  String? get blackRank => _rootNode.get('BR');
+  set blackRank(String? value) => _rootNode.set('BR', value);
 
   /// SGF `WR`: White rank.
-  String? get whiteRank => _getMeta('WR');
-  set whiteRank(String? value) => _setMeta('WR', value);
+  String? get whiteRank => _rootNode.get('WR');
+  set whiteRank(String? value) => _rootNode.set('WR', value);
 
   /// SGF `BT`: Black team name.
-  String? get blackTeam => _getMeta('BT');
-  set blackTeam(String? value) => _setMeta('BT', value);
+  String? get blackTeam => _rootNode.get('BT');
+  set blackTeam(String? value) => _rootNode.set('BT', value);
 
   /// SGF `WT`: White team name.
-  String? get whiteTeam => _getMeta('WT');
-  set whiteTeam(String? value) => _setMeta('WT', value);
+  String? get whiteTeam => _rootNode.get('WT');
+  set whiteTeam(String? value) => _rootNode.set('WT', value);
 
   /// Non-standard: Black country/region. Not defined in SGF FF[4].
-  String? get blackCountry => _getMeta('BC');
-  set blackCountry(String? value) => _setMeta('BC', value);
+  String? get blackCountry => _rootNode.get('BC');
+  set blackCountry(String? value) => _rootNode.set('BC', value);
 
   /// Non-standard: White country/region. Not defined in SGF FF[4].
-  String? get whiteCountry => _getMeta('WC');
-  set whiteCountry(String? value) => _setMeta('WC', value);
+  String? get whiteCountry => _rootNode.get('WC');
+  set whiteCountry(String? value) => _rootNode.set('WC', value);
 
   // Game info
   /// SGF `GN`: Game name/title.
-  String? get name => _getMeta('GN');
-  set name(String? value) => _setMeta('GN', value);
+  String? get name => _rootNode.get('GN');
+  set name(String? value) => _rootNode.set('GN', value);
 
   /// SGF `GC`: Game comment (free text).
-  String? get comment => _getMeta('GC');
-  set comment(String? value) => _setMeta('GC', value);
+  String? get comment => _rootNode.get('GC');
+  set comment(String? value) => _rootNode.set('GC', value);
 
   /// SGF `AN`: Annotator/author of comments.
-  String? get annotator => _getMeta('AN');
-  set annotator(String? value) => _setMeta('AN', value);
+  String? get annotator => _rootNode.get('AN');
+  set annotator(String? value) => _rootNode.set('AN', value);
 
   /// SGF `CP`: Copyright notice.
-  String? get copyright => _getMeta('CP');
-  set copyright(String? value) => _setMeta('CP', value);
+  String? get copyright => _rootNode.get('CP');
+  set copyright(String? value) => _rootNode.set('CP', value);
 
   /// SGF `SO`: Source (book, journal, URL, etc.).
-  String? get source => _getMeta('SO');
-  set source(String? value) => _setMeta('SO', value);
+  String? get source => _rootNode.get('SO');
+  set source(String? value) => _rootNode.set('SO', value);
 
   // Result, Komi, Handicap, Overtime and time settings
   /// SGF `RE`: Result. Examples: `B+R`, `W+0.5`, `Void`, `?`.
-  String? get result => _getMeta('RE');
-  set result(String? value) => _setMeta('RE', value);
+  String? get result => _rootNode.get('RE');
+  set result(String? value) => _rootNode.set('RE', value);
 
   /// SGF `KM`: Komi (real value, e.g. `7.5`).
-  String? get komi => _getMeta('KM');
-  set komi(String? value) => _setMeta('KM', value);
+  String? get komi => _rootNode.get('KM');
+  set komi(String? value) => _rootNode.set('KM', value);
 
   /// SGF `HA`: Handicap count (number of handicap stones).
-  String? get handicap => _getMeta('HA');
-  set handicap(String? value) => _setMeta('HA', value);
+  String? get handicap => _rootNode.get('HA');
+  set handicap(String? value) => _rootNode.set('HA', value);
 
   /// SGF `OT`: Overtime settings (free text, e.g. `3x60 byo-yomi`).
-  String? get overtime => _getMeta('OT');
-  set overtime(String? value) => _setMeta('OT', value);
+  String? get overtime => _rootNode.get('OT');
+  set overtime(String? value) => _rootNode.set('OT', value);
 
   /// SGF `TM`: Main time limit in seconds.
-  String? get time => _getMeta('TM');
-  set time(String? value) => _setMeta('TM', value);
+  String? get time => _rootNode.get('TM');
+  set time(String? value) => _rootNode.set('TM', value);
 
   /// Non-standard: Byo-yomi periods count. Prefer describing in `OT` for portability.
-  String? get byoYomiPeriods => _getMeta('LC');
-  set byoYomiPeriods(String? value) => _setMeta('LC', value);
+  String? get byoYomiPeriods => _rootNode.get('LC');
+  set byoYomiPeriods(String? value) => _rootNode.set('LC', value);
 
   /// Non-standard: Byo-yomi period length. Prefer describing in `OT` for portability.
-  String? get byoYomiLength => _getMeta('LT');
-  set byoYomiLength(String? value) => _setMeta('LT', value);
+  String? get byoYomiLength => _rootNode.get('LT');
+  set byoYomiLength(String? value) => _rootNode.set('LT', value);
 
   /// Plays a move for the current player at [vertex].
   ///
