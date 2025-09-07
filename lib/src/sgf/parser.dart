@@ -33,8 +33,8 @@ String _unescapeSgfValue(String s) {
 /// - Unexpected characters result in a [StateError].
 class Parser {
   /// Parses [text] and returns the list of root nodes. If the input contains
-  /// a node sequence outside parentheses, a dummy anchor (with `id == null`)
-  /// is used and its children are returned.
+  /// a parenthesized game, an internal dummy anchor is used (with a negative
+  /// `id`) and its children are returned.
   GameTree parse(
     String text, {
     IdGenerator? getId,
@@ -55,7 +55,7 @@ class Parser {
     );
 
     if (root == null) return GameTree(const []);
-    final nodes = root.id == null ? root.children : [root];
+    final nodes = root.id < 0 ? root.children : [root];
     return GameTree(nodes);
   }
 
@@ -63,7 +63,7 @@ class Parser {
   ///
   /// [parentId] is the ID of the parent node. Returns the anchor node of the
   /// just-parsed linear sequence; at the top level this may be a dummy anchor
-  /// (with `id == null`).
+  /// (with a negative `id`).
   Node? _parseTokens(
     Peekable<Token> tokens,
     int? parentId, {
@@ -140,7 +140,9 @@ class Parser {
     }
 
     if (node == null) {
-      anchor = node = Node(null, null, {}, []);
+      // Create a dummy anchor for grouping top-level variations.
+      // Use a negative id to distinguish from real nodes (0,1,2,...).
+      anchor = node = Node(-1, null, {}, []);
     } else {
       onNodeCreated(node);
     }
@@ -155,7 +157,7 @@ class Parser {
         tokens.next();
         final child = _parseTokens(
           tokens,
-          node.id,
+          node.id < 0 ? null : node.id,
           getId: getId,
           onNodeCreated: onNodeCreated,
         );
