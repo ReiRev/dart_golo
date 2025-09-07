@@ -18,55 +18,46 @@ void main(List<String> args) async {
   }
 
   final text = await file.readAsString();
-  final trees = sgf.Parser().parse(text);
-  if (trees.isEmpty) {
-    stderr.writeln('No SGF game trees found.');
+  late final Game game;
+  try {
+    game = Game.fromSgf(text);
+  } catch (e) {
+    stderr.writeln('Failed to parse SGF: $e');
     exitCode = 1;
     return;
   }
 
-  final root = trees.first;
-
-  // Board size (SZ), e.g. 19 or 9:13
-  final sizeVals = root.data['SZ'];
-  final (width, height) = _parseSize(sizeVals) ?? (19, 19);
-  Board board = Board.fromDimension(width, height);
-
-  // Apply setup stones if present (AB/AW/AE) in the root.
-  _applySetup(root, board);
-
-  // Extract main line (first-child path), ignoring variations.
-  final mainline = _extractMainline(root);
-
-  // Build board states per node (index aligned with mainline).
+  // Build board snapshots from Game (nodeId 0..N-1).
   final states = <Board>[];
-  {
-    // state for root
-    states.add(board.clone());
-    for (var i = 1; i < mainline.length; i++) {
-      final node = mainline[i];
-      final prev = states.last.clone();
-      // Optional setup inside non-root nodes
-      _applySetup(node, prev);
-      // Apply move if present (B or W). Empty value means pass.
-      if (node.data['B'] != null || node.data['W'] != null) {
-        final isBlack = node.data['B'] != null;
-        final list = node.data[isBlack ? 'B' : 'W']!;
-        final coord = list.isNotEmpty ? list.first : '';
-        if (coord.isNotEmpty) {
-          final v = _vertexFromSgf(coord);
-          if (v != null) {
-            states.add(prev.makeMove(v, isBlack ? Stone.black : Stone.white));
-            continue;
-          }
-        }
-      }
-      // Pass or no move: carry forward
-      states.add(prev);
+  for (var i = 0;; i++) {
+    try {
+      states.add(game.boardAt(i));
+    } catch (_) {
+      break;
     }
   }
 
-  final total = mainline.length; // number of nodes/steps
+  // Build Node.data list aligned with states (root + each move/pass only).
+  final nodeDatas = <Map<String, List<String>>>[];
+  try {
+    final trees = sgf.Parser().parse(text);
+    if (trees.isNotEmpty) {
+      final root = trees.first;
+      final mainline = _extractMainline(root);
+      if (mainline.isNotEmpty) {
+        // Root data first
+        nodeDatas.add(mainline.first.data);
+        for (final n in mainline.skip(1)) {
+          final hasMove = n.data.containsKey('B') || n.data.containsKey('W');
+          if (hasMove) nodeDatas.add(n.data);
+        }
+      }
+    }
+  } catch (_) {
+    // Fallback: leave nodeDatas empty; rendering will skip printing node data.
+  }
+
+  final total = states.length; // number of nodes/steps
 
   void render(int idx) {
     // Clear screen and move cursor home.
@@ -77,10 +68,8 @@ void main(List<String> args) async {
     stdout.writeln(stepInfo);
     stdout.writeln();
     stdout.writeln(states[idx]);
-    // Show Node.data for the current node under the board
-    final nodeData = mainline[idx].data;
-    if (nodeData.isNotEmpty) {
-      stdout.writeln('Node.data: $nodeData');
+    if (idx < nodeDatas.length && nodeDatas[idx].isNotEmpty) {
+      stdout.writeln('Node.data: ${nodeDatas[idx]}');
     }
     stdout.writeln('[Up] Back  [Down] Forward  [Q] Quit');
   }
@@ -145,75 +134,7 @@ void main(List<String> args) async {
   }
 }
 
-// Helpers
-
-/// Parse SZ property values to (width, height).
-(int, int)? _parseSize(List<String>? values) {
-  if (values == null || values.isEmpty) return null;
-  final v = values.first.trim();
-  if (v.isEmpty) return null;
-  if (v.contains(':')) {
-    final parts = v.split(':');
-    final w = int.tryParse(parts[0]);
-    final h = parts.length > 1 ? int.tryParse(parts[1]) : null;
-    if (w == null || h == null) return null;
-    return (w, h);
-  }
-  final n = int.tryParse(v);
-  if (n == null) return null;
-  return (n, n);
-}
-
-/// Apply AB/AW/AE setup from a node to the board (supports compressed point lists).
-void _applySetup(Node node, Board board) {
-  void apply(String key, Stone? stone) {
-    final vals = node.data[key];
-    if (vals == null) return;
-    for (final raw in vals) {
-      for (final v in _expandPoint(raw)) {
-        if (board.has(v)) board.set(v, stone);
-      }
-    }
-  }
-
-  apply('AB', Stone.black);
-  apply('AW', Stone.white);
-  apply('AE', null);
-}
-
-/// Expand a simple SGF point or compressed point list (e.g. 'aa' or 'aa:cc').
-Iterable<Vertex> _expandPoint(String s) sync* {
-  final t = s.trim();
-  if (t.isEmpty) return;
-  if (!t.contains(':')) {
-    final v = _vertexFromSgf(t);
-    if (v != null) yield v;
-    return;
-  }
-  final parts = t.split(':');
-  if (parts.length != 2) return;
-  final a = _vertexFromSgf(parts[0]);
-  final b = _vertexFromSgf(parts[1]);
-  if (a == null || b == null) return;
-  final minX = a.x <= b.x ? a.x : b.x;
-  final maxX = a.x >= b.x ? a.x : b.x;
-  final minY = a.y <= b.y ? a.y : b.y;
-  final maxY = a.y >= b.y ? a.y : b.y;
-  for (var x = minX; x <= maxX; x++) {
-    for (var y = minY; y <= maxY; y++) {
-      yield (x: x, y: y);
-    }
-  }
-}
-
-Vertex? _vertexFromSgf(String s) {
-  if (s.length < 2) return null; // pass or invalid
-  final x = s.codeUnitAt(0) - 97; // 'a' => 0
-  final y = s.codeUnitAt(1) - 97;
-  return (x: x, y: y);
-}
-
-/// Walk first-child chain to collect nodes on the main line.
+// Walk first-child chain to collect nodes on the main line.
 List<Node> _extractMainline(Node root) {
   final list = <Node>[];
   Node? cur = root;
