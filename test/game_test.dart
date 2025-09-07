@@ -230,6 +230,68 @@ void main() {
               e.reason == IllegalMoveReason.overwrite)),
         );
       });
+
+      test('throws outOfBoard for moves outside', () {
+        final game = Game();
+        expect(
+          () => game.play((x: 19, y: 0)),
+          throwsA(predicate((e) =>
+              e is IllegalMoveException &&
+              e.reason == IllegalMoveReason.outOfBoard)),
+        );
+        expect(
+          () => game.play((x: -1, y: 0)),
+          throwsA(predicate((e) =>
+              e is IllegalMoveException &&
+              e.reason == IllegalMoveReason.outOfBoard)),
+        );
+      });
+
+      test('throws suicide when filling own last liberty', () {
+        final game = Game();
+
+        // Surround (10,10) with White stones on four sides.
+        game.pass(); // W to play
+        game.play((x: 9, y: 10)); // W
+        game.pass(); // B passes, W again
+        game.play((x: 11, y: 10)); // W
+        game.pass();
+        game.play((x: 10, y: 9)); // W
+        game.pass();
+        game.play((x: 10, y: 11)); // W
+
+        // Now Black attempts to play at (10,10) which is suicide.
+        expect(
+          () => game.play((x: 10, y: 10)),
+          throwsA(predicate((e) =>
+              e is IllegalMoveException &&
+              e.reason == IllegalMoveReason.suicide)),
+        );
+      });
+
+      test('throws ko on immediate recapture', () {
+        final game = Game();
+
+        // Set up classic single-stone ko around (10,10) with last liberty at (10,9).
+        game.pass(); // W to play
+        game.play((x: 10, y: 10)); // W center stone to be captured in ko
+        game.play((x: 9, y: 10)); // B
+        game.play((x: 9, y: 9)); // W
+        game.play((x: 11, y: 10)); // B
+        game.play((x: 11, y: 9)); // W
+        game.play((x: 10, y: 11)); // B
+        game.play((x: 10, y: 8)); // W
+
+        // Black captures at (10,9), creating ko at (10,10).
+        game.play((x: 10, y: 9)); // B capture -> ko
+
+        // White immediate recapture at (10,10) is forbidden by ko.
+        expect(
+          () => game.play((x: 10, y: 10)),
+          throwsA(predicate((e) =>
+              e is IllegalMoveException && e.reason == IllegalMoveReason.ko)),
+        );
+      });
     });
   });
 }
