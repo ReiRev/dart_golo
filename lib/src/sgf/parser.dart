@@ -1,5 +1,6 @@
 import 'token.dart';
 import '../game_tree.dart';
+import '../node.dart';
 
 /// Callback that generates node IDs.
 /// The default is a simple sequence 0,1,2,...

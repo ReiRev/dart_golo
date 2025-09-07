@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:golo/sgf.dart';
+import 'package:golo/golo.dart';
 import 'package:test/test.dart';
 import 'package:collection/collection.dart';
 

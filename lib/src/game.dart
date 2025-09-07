@@ -1,5 +1,6 @@
-import 'package:golo/src/game_tree.dart';
-import 'package:golo/src/go_board.dart';
+import 'game_tree.dart';
+import 'go_board.dart';
+import 'node.dart';
 
 class Game {
   Board _currentBoard;

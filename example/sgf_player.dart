@@ -165,7 +165,7 @@ void main(List<String> args) async {
 }
 
 /// Apply AB/AW/AE setup from a node to the board (supports compressed point lists).
-void _applySetup(sgf.Node node, Board board) {
+void _applySetup(Node node, Board board) {
   void apply(String key, Stone? stone) {
     final vals = node.data[key];
     if (vals == null) return;
@@ -214,9 +214,9 @@ Vertex? _vertexFromSgf(String s) {
 }
 
 /// Walk first-child chain to collect nodes on the main line.
-List<sgf.Node> _extractMainline(sgf.Node root) {
-  final list = <sgf.Node>[];
-  sgf.Node? cur = root;
+List<Node> _extractMainline(Node root) {
+  final list = <Node>[];
+  Node? cur = root;
   while (cur != null) {
     list.add(cur);
     cur = cur.children.isNotEmpty ? cur.children.first : null;
