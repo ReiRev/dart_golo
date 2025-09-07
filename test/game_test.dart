@@ -325,4 +325,41 @@ void main() {
       });
     });
   });
+
+  group('SGF I/O', () {
+    test('toSgf outputs parsable SGF with size and moves', () {
+      final game = Game(width: 9, height: 13);
+
+      game.play((x: 3, y: 3)); // dd
+      game.pass();
+      game.play((x: 4, y: 4)); // ee
+
+      final s = game.toSgf(linebreak: '');
+      expect(s.contains('GM[1]'), true);
+      expect(s.contains('FF[4]'), true);
+      expect(s.contains('SZ[9:13]'), true);
+      expect(s.contains(';B[dd];W[];B[ee]'), true);
+    });
+
+    test('fromSgf builds game with size, setup, moves, and comments', () {
+      final game = Game.fromSgf('(;SZ[9]AB[cc];B[dd];W[];B[ee]C[hello])');
+
+      // Board size 9x9
+      final rootBoard = game.boardAt(0);
+      expect(rootBoard.width, 9);
+      expect(rootBoard.height, 9);
+
+      // Root setup AB[cc] applied
+      expect(rootBoard.get((x: 2, y: 2)), Stone.black);
+
+      // Current board should reflect dd (B), pass (W), ee (B)
+      final cur = game.board;
+      expect(cur.get((x: 3, y: 3)), Stone.black); // dd
+      expect(cur.get((x: 4, y: 4)), Stone.black); // ee (both stones present)
+
+      // SGF output should include the move comment
+      final out = game.toSgf(linebreak: '');
+      expect(out.contains('C[hello]'), isTrue);
+    });
+  });
 }

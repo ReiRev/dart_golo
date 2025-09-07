@@ -1,6 +1,7 @@
 import 'game_tree.dart';
 import 'go_board.dart';
 import 'node.dart';
+import 'sgf/parser.dart';
 
 class Game {
   Board _currentBoard;
@@ -211,4 +212,145 @@ class Game {
   }
 
   // SGF coordinate conversion is handled by Node helpers.
+
+  /// Stringify this game to SGF text using the internal game tree.
+  String toSgf({String linebreak = '\n', String indent = '  '}) {
+    return _gameTree.toSgf(linebreak: linebreak, indent: indent);
+  }
+
+  /// Creates a game from SGF text, following only the main line (first-child path).
+  ///
+  /// - Size (SZ) is respected if present; otherwise defaults to 19x19.
+  /// - Root setup stones (AB/AW/AE) are applied.
+  /// - Variations are ignored; only the first-child chain is imported.
+  factory Game.fromSgf(String text) {
+    final trees = Parser().parse(text);
+    if (trees.isEmpty) {
+      throw StateError('No SGF game trees found');
+    }
+
+    final root = trees[0];
+    final size = _parseSize(root.data['SZ']);
+    final game = Game(width: size.$1, height: size.$2);
+
+    // Merge root metadata, excluding move properties (B/W).
+    for (final entry in root.data.entries) {
+      final key = entry.key;
+      if (key == 'B' || key == 'W') continue;
+      game._rootNode.data[key] = List<String>.from(entry.value);
+    }
+
+    // Apply root setup stones to initial board and refresh snapshot.
+    _applySetup(root, game._currentBoard);
+    game._boardHistory[game._rootNode.id] = game._currentBoard.clone();
+
+    // Walk main line and apply moves/passes.
+    final mainline = _extractMainline(root);
+    for (var i = 0; i < mainline.length; i++) {
+      final node = mainline[i];
+      // Skip the initial root metadata-only node if it has no move.
+      final hasB = node.data['B'] != null;
+      final hasW = node.data['W'] != null;
+      if (!hasB && !hasW) continue;
+
+      final isBlack = hasB;
+      final values = node.data[isBlack ? 'B' : 'W']!;
+      final coord = values.isNotEmpty ? values.first : '';
+
+      // Ensure turn matches the node color.
+      game._currentPlayer = isBlack ? Stone.black : Stone.white;
+
+      if (coord.isEmpty) {
+        // Pass move
+        game.pass();
+      } else {
+        final v = _vertexFromSgf(coord);
+        if (v != null) {
+          game.play(v);
+        }
+      }
+
+      // Preserve move comment if present.
+      final cvals = node.data['C'];
+      final comment = (cvals != null && cvals.isNotEmpty) ? cvals.first : null;
+      if (comment != null && comment.isNotEmpty) {
+        game._currentNode.set('C', comment);
+      }
+    }
+
+    return game;
+  }
+
+  static (int, int) _parseSize(List<String>? values) {
+    if (values == null || values.isEmpty) return (19, 19);
+    final v = values.first.trim();
+    if (v.isEmpty) return (19, 19);
+    if (v.contains(':')) {
+      final parts = v.split(':');
+      final w = int.tryParse(parts[0]);
+      final h = parts.length > 1 ? int.tryParse(parts[1]) : null;
+      if (w == null || h == null) return (19, 19);
+      return (w, h);
+    }
+    final n = int.tryParse(v);
+    if (n == null) return (19, 19);
+    return (n, n);
+  }
+
+  static void _applySetup(Node node, Board board) {
+    void apply(String key, Stone? stone) {
+      final vals = node.data[key];
+      if (vals == null) return;
+      for (final raw in vals) {
+        for (final v in _expandPoint(raw)) {
+          if (board.has(v)) board.set(v, stone);
+        }
+      }
+    }
+
+    apply('AB', Stone.black);
+    apply('AW', Stone.white);
+    apply('AE', null);
+  }
+
+  static Iterable<Vertex> _expandPoint(String s) sync* {
+    final t = s.trim();
+    if (t.isEmpty) return;
+    if (!t.contains(':')) {
+      final v = _vertexFromSgf(t);
+      if (v != null) yield v;
+      return;
+    }
+    final parts = t.split(':');
+    if (parts.length != 2) return;
+    final a = _vertexFromSgf(parts[0]);
+    final b = _vertexFromSgf(parts[1]);
+    if (a == null || b == null) return;
+    final minX = a.x <= b.x ? a.x : b.x;
+    final maxX = a.x >= b.x ? a.x : b.x;
+    final minY = a.y <= b.y ? a.y : b.y;
+    final maxY = a.y >= b.y ? a.y : b.y;
+    for (var x = minX; x <= maxX; x++) {
+      for (var y = minY; y <= maxY; y++) {
+        yield (x: x, y: y);
+      }
+    }
+  }
+
+  static Vertex? _vertexFromSgf(String s) {
+    if (s.length < 2) return null;
+    final x = s.codeUnitAt(0) - 97; // 'a' => 0
+    final y = s.codeUnitAt(1) - 97;
+    return (x: x, y: y);
+  }
+
+  static List<Node> _extractMainline(Node root) {
+    final list = <Node>[];
+    Node? cur = root;
+    while (cur != null) {
+      list.add(cur);
+      cur = cur.children.isNotEmpty ? cur.children.first : null;
+    }
+    return list;
+  }
 }
