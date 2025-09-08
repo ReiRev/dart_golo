@@ -2,6 +2,7 @@ import 'game_tree.dart';
 import 'go_board.dart';
 import 'node.dart';
 import 'sgf/parser.dart';
+import 'sgf/recursive_node.dart';
 
 class Game {
   Board _currentBoard;
@@ -228,12 +229,17 @@ class Game {
   /// - Root setup stones (AB/AW/AE) are applied.
   /// - Variations are ignored; only the first-child chain is imported.
   factory Game.fromSgf(String text) {
-    final trees = Parser().parse(text);
-    if (trees.isEmpty) {
+    final parsed = Parser().parse(text);
+    // Determine effective root (skip dummy anchor if present).
+    final root = parsed.id < 0
+        ? (parsed.children.isNotEmpty
+            ? parsed.children.first
+            : null)
+        : parsed;
+    if (root == null) {
       throw StateError('No SGF game trees found');
     }
 
-    final root = trees[0];
     final size = _parseSize(root.data['SZ']);
     final game = Game(width: size.$1, height: size.$2);
 
@@ -245,11 +251,18 @@ class Game {
     }
 
     // Apply root setup stones to initial board and refresh snapshot.
-    _applySetup(root, game._currentBoard);
+    _applySetup(root.data, game._currentBoard);
     game._boardHistory[game._rootNode.id] = game._currentBoard.clone();
 
     // Walk main line and apply moves/passes.
-    final mainline = _extractMainline(root);
+    final mainline = <RecursiveNode>[];
+    {
+      RecursiveNode? cur = root;
+      while (cur != null) {
+        mainline.add(cur);
+        cur = cur.children.isNotEmpty ? cur.children.first : null;
+      }
+    }
     for (var i = 0; i < mainline.length; i++) {
       final node = mainline[i];
       // Skip the initial root metadata-only node if it has no move.
@@ -330,9 +343,9 @@ class Game {
     return (n, n);
   }
 
-  static void _applySetup(Node node, Board board) {
+  static void _applySetup(Map<String, List<String>> data, Board board) {
     void apply(String key, Stone? stone) {
-      final vals = node.data[key];
+      final vals = data[key];
       if (vals == null) return;
       for (final raw in vals) {
         for (final v in _expandPoint(raw)) {
@@ -377,13 +390,5 @@ class Game {
     return (x: x, y: y);
   }
 
-  static List<Node> _extractMainline(Node root) {
-    final list = <Node>[];
-    Node? cur = root;
-    while (cur != null) {
-      list.add(cur);
-      cur = cur.children.isNotEmpty ? cur.children.first : null;
-    }
-    return list;
-  }
+  // _extractMainline for Node kept below (if needed in future) was removed.
 }

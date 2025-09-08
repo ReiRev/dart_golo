@@ -1,6 +1,4 @@
 import 'token.dart';
-import '../game_tree.dart';
-import '../node.dart';
 import 'recursive_node.dart';
 
 /// Callback that generates node IDs.
@@ -8,7 +6,7 @@ import 'recursive_node.dart';
 typedef IdGenerator = int Function();
 
 /// Callback invoked whenever a node is finalized/created.
-typedef NodeCallback = void Function(Node node);
+typedef NodeCallback = void Function(RecursiveNode node);
 
 /// Unescapes SGF backslash-escaping.
 /// A backslash escapes the next single character (including `]`, `\\`, `\n`, etc.).
@@ -34,10 +32,12 @@ String _unescapeSgfValue(String s) {
 /// - Property values are the text inside `[...]` with SGF escapes unescaped.
 /// - Unexpected characters result in a [StateError].
 class Parser {
-  /// Parses [text] and returns the list of root nodes. If the input contains
-  /// a parenthesized game, an internal dummy anchor is used (with a negative
-  /// `id`) and its children are returned.
-  GameTree parse(
+  /// Parses [text] and returns the root [RecursiveNode].
+  ///
+  /// If the input is a parenthesized game or contains multiple top-level
+  /// variations, a dummy anchor (with negative `id`) is returned and its
+  /// `children` represent top-level roots.
+  RecursiveNode parse(
     String text, {
     IdGenerator? getId,
     NodeCallback? onNodeCreated,
@@ -56,9 +56,8 @@ class Parser {
       onNodeCreated: onNodeCreated,
     );
 
-    if (root == null) return GameTree(const []);
-    final nodes = root.id < 0 ? root.children : [root];
-    return GameTree(nodes);
+    // When no content is parsed, return an empty dummy anchor.
+    return root ?? RecursiveNode(-1, null, {}, []);
   }
 
   /// Recursive-descent parsing of a sequence/variation.
@@ -66,14 +65,14 @@ class Parser {
   /// [parentId] is the ID of the parent node. Returns the anchor node of the
   /// just-parsed linear sequence; at the top level this may be a dummy anchor
   /// (with a negative `id`).
-  Node? _parseTokens(
+  RecursiveNode? _parseTokens(
     Peekable<Token> tokens,
     int? parentId, {
     required IdGenerator getId,
     required NodeCallback onNodeCreated,
   }) {
-    Node? anchor;
-    Node? node;
+    RecursiveNode? anchor;
+    RecursiveNode? node;
     List<String>? property;
 
     while (true) {

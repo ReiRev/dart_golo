@@ -8,4 +8,3 @@ library golo_sgf;
 export 'src/sgf/token.dart';
 export 'src/sgf/parser.dart';
 export 'src/sgf/recursive_node.dart';
-export 'src/game_tree.dart';

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
-import 'package:golo/sgf.dart';
-import 'package:golo/src/node.dart';
+import 'package:golo/golo.dart';
 
 void main() {
   group('GameTree', () {

@@ -40,17 +40,15 @@ void main(List<String> args) async {
   // Build Node.data list aligned with states (root + each move/pass only).
   final nodeDatas = <Map<String, List<String>>>[];
   try {
-    final trees = sgf.Parser().parse(text);
-    if (trees.isNotEmpty) {
-      final root = trees.first;
-      final mainline = _extractMainline(root);
-      if (mainline.isNotEmpty) {
-        // Root data first
-        nodeDatas.add(mainline.first.data);
-        for (final n in mainline.skip(1)) {
-          final hasMove = n.data.containsKey('B') || n.data.containsKey('W');
-          if (hasMove) nodeDatas.add(n.data);
-        }
+    final tree = sgf.Parser().parse(text);
+    final root = tree.id < 0 && tree.children.isNotEmpty ? tree.children.first : tree;
+    final mainline = _extractMainline(root);
+    if (mainline.isNotEmpty) {
+      // Root data first
+      nodeDatas.add(mainline.first.data);
+      for (final n in mainline.skip(1)) {
+        final hasMove = n.data.containsKey('B') || n.data.containsKey('W');
+        if (hasMove) nodeDatas.add(n.data);
       }
     }
   } catch (_) {
@@ -135,9 +133,9 @@ void main(List<String> args) async {
 }
 
 // Walk first-child chain to collect nodes on the main line.
-List<Node> _extractMainline(Node root) {
-  final list = <Node>[];
-  Node? cur = root;
+List<sgf.RecursiveNode> _extractMainline(sgf.RecursiveNode root) {
+  final list = <sgf.RecursiveNode>[];
+  sgf.RecursiveNode? cur = root;
   while (cur != null) {
     list.add(cur);
     cur = cur.children.isNotEmpty ? cur.children.first : null;
