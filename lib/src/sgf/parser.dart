@@ -1,6 +1,7 @@
 import 'token.dart';
 import '../game_tree.dart';
 import '../node.dart';
+import 'recursive_node.dart';
 
 /// Callback that generates node IDs.
 /// The default is a simple sequence 0,1,2,...
@@ -91,7 +92,12 @@ class Parser {
 
       if (type == TokenType.semicolon || node == null) {
         final lastNode = node;
-        node = Node(getId(), lastNode == null ? parentId : lastNode.id, {}, []);
+        node = RecursiveNode(
+          getId(),
+          lastNode == null ? parentId : lastNode.id,
+          {},
+          [],
+        );
         if (lastNode != null) {
           onNodeCreated(lastNode);
           lastNode.children.add(node);
@@ -143,7 +149,7 @@ class Parser {
     if (node == null) {
       // Create a dummy anchor for grouping top-level variations.
       // Use a negative id to distinguish from real nodes (0,1,2,...).
-      anchor = node = Node(-1, null, {}, []);
+      anchor = node = RecursiveNode(-1, null, {}, []);
     } else {
       onNodeCreated(node);
     }
