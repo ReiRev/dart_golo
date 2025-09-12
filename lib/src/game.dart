@@ -55,7 +55,8 @@ class Game {
 
   /// SGF `AP`: Application name and version (e.g. `Name:Version`). Default is `Dart Golo`.
   String? get application => _sgfTree.nodeById(_rootId)!.get('AP');
-  set application(String? value) => _sgfTree.nodeById(_rootId)!.set('AP', value);
+  set application(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('AP', value);
 
   /// SGF `CA`: Charset for SimpleText/Text (e.g. `UTF-8`).
   String? get charset => _sgfTree.nodeById(_rootId)!.get('CA');
@@ -80,11 +81,13 @@ class Game {
   // Players, ranks, teams, countries
   /// SGF `PB`: Black player name.
   String? get playerBlack => _sgfTree.nodeById(_rootId)!.get('PB');
-  set playerBlack(String? value) => _sgfTree.nodeById(_rootId)!.set('PB', value);
+  set playerBlack(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('PB', value);
 
   /// SGF `PW`: White player name.
   String? get playerWhite => _sgfTree.nodeById(_rootId)!.get('PW');
-  set playerWhite(String? value) => _sgfTree.nodeById(_rootId)!.set('PW', value);
+  set playerWhite(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('PW', value);
 
   /// SGF `BR`: Black rank (e.g. `9d`, `1k`, `6p`).
   String? get blackRank => _sgfTree.nodeById(_rootId)!.get('BR');
@@ -104,11 +107,13 @@ class Game {
 
   /// Non-standard: Black country/region. Not defined in SGF FF[4].
   String? get blackCountry => _sgfTree.nodeById(_rootId)!.get('BC');
-  set blackCountry(String? value) => _sgfTree.nodeById(_rootId)!.set('BC', value);
+  set blackCountry(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('BC', value);
 
   /// Non-standard: White country/region. Not defined in SGF FF[4].
   String? get whiteCountry => _sgfTree.nodeById(_rootId)!.get('WC');
-  set whiteCountry(String? value) => _sgfTree.nodeById(_rootId)!.set('WC', value);
+  set whiteCountry(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('WC', value);
 
   // Game info
   /// SGF `GN`: Game name/title.
@@ -154,11 +159,13 @@ class Game {
 
   /// Non-standard: Byo-yomi periods count. Prefer describing in `OT` for portability.
   String? get byoYomiPeriods => _sgfTree.nodeById(_rootId)!.get('LC');
-  set byoYomiPeriods(String? value) => _sgfTree.nodeById(_rootId)!.set('LC', value);
+  set byoYomiPeriods(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('LC', value);
 
   /// Non-standard: Byo-yomi period length. Prefer describing in `OT` for portability.
   String? get byoYomiLength => _sgfTree.nodeById(_rootId)!.get('LT');
-  set byoYomiLength(String? value) => _sgfTree.nodeById(_rootId)!.set('LT', value);
+  set byoYomiLength(String? value) =>
+      _sgfTree.nodeById(_rootId)!.set('LT', value);
 
   /// Plays a move for the current player at [vertex].
   ///
@@ -362,6 +369,4 @@ class Game {
     final y = s.codeUnitAt(1) - 97;
     return (x: x, y: y);
   }
-
-  // _extractMainline for Node kept below (if needed in future) was removed.
 }
