@@ -100,26 +100,24 @@ class Parser {
 
       if (type == TokenType.semicolon) {
       } else if (type == TokenType.propertyIdentifier) {
-        if (node != null) {
-          final v = value;
-          final upper = v.toUpperCase();
-          String identifier;
-          if (v == upper) {
-            identifier = v;
-          } else {
-            final buf = StringBuffer();
-            for (var i = 0; i < v.length; i++) {
-              final ch = v[i];
-              if (ch.toUpperCase() == ch) buf.write(ch);
-            }
-            identifier = buf.toString();
+        final v = value;
+        final upper = v.toUpperCase();
+        String identifier;
+        if (v == upper) {
+          identifier = v;
+        } else {
+          final buf = StringBuffer();
+          for (var i = 0; i < v.length; i++) {
+            final ch = v[i];
+            if (ch.toUpperCase() == ch) buf.write(ch);
           }
-          if (identifier.isNotEmpty) {
-            node.data.putIfAbsent(identifier, () => <String>[]);
-            property = node.data[identifier]!;
-          } else {
-            property = null;
-          }
+          identifier = buf.toString();
+        }
+        if (identifier.isNotEmpty) {
+          node.data.putIfAbsent(identifier, () => <String>[]);
+          property = node.data[identifier]!;
+        } else {
+          property = null;
         }
       } else if (type == TokenType.propertyValue) {
         if (property != null) {

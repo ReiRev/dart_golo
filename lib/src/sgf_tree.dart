@@ -110,8 +110,8 @@ class SgfTree {
     final buf = StringBuffer();
 
     String totalIndent(int level) => linebreak.isEmpty ? '' : indent * level;
-    bool _isUpperIdent(String id) => id.toUpperCase() == id;
-    String _escapeValue(String s) =>
+    bool isUpperIdent(String id) => id.toUpperCase() == id;
+    String escapeValue(String s) =>
         s.replaceAll('\\', r'\\').replaceAll(']', r'\]');
 
     void writeNode(Node node, int level) {
@@ -120,7 +120,7 @@ class SgfTree {
         buf.write(';');
         for (final entry in node.data.entries) {
           final id = entry.key;
-          if (!_isUpperIdent(id)) continue;
+          if (!isUpperIdent(id)) continue;
           final values = entry.value;
           buf.write(id);
           if (values.isEmpty) {
@@ -128,7 +128,7 @@ class SgfTree {
           } else {
             for (final v in values) {
               buf.write('[');
-              buf.write(_escapeValue(v));
+              buf.write(escapeValue(v));
               buf.write(']');
             }
           }

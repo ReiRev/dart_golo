@@ -1,4 +1,3 @@
-/// Core data types and APIs for Go (Baduk/Weiqi) board logic.
 import 'dart:math';
 
 /// Stone colors.

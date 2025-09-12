@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import 'package:golo/sgf.dart';
 import 'package:golo/golo.dart';
 
 void main() {

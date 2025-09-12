@@ -25,7 +25,8 @@ void main() {
       test('addChild to non-existent parent throws', () {
         final tree = SgfTree();
         tree.addRoot(Node({}, []));
-        expect(() => tree.addChild(Node({}, []), parentId: 999), throwsStateError);
+        expect(
+            () => tree.addChild(Node({}, []), parentId: 999), throwsStateError);
       });
 
       test('goNextAt out of bounds is ignored', () {
@@ -95,12 +96,11 @@ void main() {
     group('cursor', () {
       test('moveTo changes cursor when id exists', () {
         final tree = SgfTree();
-        final a = tree.addRoot(Node({}, []));
-        final b = tree.addRoot(Node({}, []));
-        tree.moveTo(b);
-        expect(tree.cursorId, b);
+        final n = tree.addRoot(Node({}, []));
+        tree.moveTo(n);
+        expect(tree.cursorId, n);
         tree.moveTo(999);
-        expect(tree.cursorId, b);
+        expect(tree.cursorId, n);
       });
     });
 
