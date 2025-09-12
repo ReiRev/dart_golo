@@ -1,4 +1,4 @@
-import 'go_board.dart';
+import 'board.dart';
 
 /// Game-side node holding SGF properties and child IDs.
 /// Parent links are managed by `SgfTree`.

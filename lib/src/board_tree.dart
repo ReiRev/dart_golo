@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'go_board.dart';
+import 'board.dart';
 
 /// Stores canonical Board snapshots keyed by node IDs.
 /// Agnostic of tree structure; exposes a cloning Map interface.

@@ -1,5 +1,5 @@
 import 'sgf_tree.dart';
-import 'go_board.dart';
+import 'board.dart';
 import 'node.dart';
 import 'board_tree.dart';
 import 'sgf/parser.dart';
