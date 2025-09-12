@@ -1,19 +1,18 @@
 import 'go_board.dart';
 
-/// A node in an SGF game tree.
+/// A node in a game tree (Game-side structure).
 ///
-/// - [id]: Unique node ID. Internal dummy anchors use a negative ID.
-/// - [parentId]: Parent node ID. Nodes directly under the root may have `null`.
 /// - [data]: Map of SGF properties. Keys are identifiers (e.g. `B`, `W`, `AB`, `SZ`),
 ///   values are arrays holding zero or more values for that property.
-/// - [children]: Variations (branches) represented as child nodes.
+/// - [children]: Variations (branches) represented as child node IDs.
+///
+/// Parent-child relationships are managed by SgfTree; Node itself does not
+/// hold a parent reference.
 class Node {
-  int id;
-  int? parentId;
   Map<String, List<String>> data = {};
-  List<Node> children;
+  List<int> children;
 
-  Node(this.id, this.parentId, this.data, this.children);
+  Node(this.data, this.children);
 
   /// Returns the first value of the SGF property [key], or `null` if absent.
   String? get(String key) {
@@ -50,30 +49,30 @@ class Node {
   void addWhite(Vertex vertex) => addStone(Stone.white, vertex);
 
   /// Named constructor that creates a node representing a move.
-  Node.move(this.id, this.parentId, Stone color, Vertex vertex)
+  Node.move(Stone color, Vertex vertex)
       : data = <String, List<String>>{},
-        children = <Node>[] {
+        children = <int>[] {
     addStone(color, vertex);
   }
 
   /// Named constructor that creates a node representing a pass.
-  Node.pass(this.id, this.parentId, Stone color)
+  Node.pass(Stone color)
       : data = <String, List<String>>{},
-        children = <Node>[] {
+        children = <int>[] {
     addPass(color);
   }
 
   /// Named constructor for a Black move node.
-  Node.black(this.id, this.parentId, Vertex vertex)
+  Node.black(Vertex vertex)
       : data = <String, List<String>>{},
-        children = <Node>[] {
+        children = <int>[] {
     addStone(Stone.black, vertex);
   }
 
   /// Named constructor for a White move node.
-  Node.white(this.id, this.parentId, Vertex vertex)
+  Node.white(Vertex vertex)
       : data = <String, List<String>>{},
-        children = <Node>[] {
+        children = <int>[] {
     addStone(Stone.white, vertex);
   }
 
@@ -87,7 +86,6 @@ class Node {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! Node) return false;
-    if (id != other.id || parentId != other.parentId) return false;
     if (data.length != other.data.length) return false;
     for (final key in data.keys) {
       final a = data[key];
@@ -107,7 +105,7 @@ class Node {
 
   @override
   int get hashCode {
-    var h = Object.hash(id, parentId);
+    var h = 0;
     for (final key in data.keys) {
       h = Object.hash(h, key);
       final list = data[key]!;

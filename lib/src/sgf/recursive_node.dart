@@ -1,4 +1,4 @@
-import '../go_board.dart';
+// Standalone SGF tree node without dependencies on Board or game types.
 
 /// SGF-specific recursive node used by the parser.
 ///
@@ -10,62 +10,6 @@ class RecursiveNode {
   List<RecursiveNode> children;
 
   RecursiveNode(this.id, this.parentId, this.data, this.children);
-
-  String? get(String key) {
-    final values = data[key];
-    return (values != null && values.isNotEmpty) ? values.first : null;
-    }
-
-  void set(String key, String? value) {
-    if (value == null || value.isEmpty) {
-      data.remove(key);
-    } else {
-      data[key] = [value];
-    }
-  }
-
-  void addStone(Stone color, Vertex vertex) {
-    final key = color == Stone.black ? 'B' : 'W';
-    data[key] = [_toSgfCoord(vertex)];
-  }
-
-  void addPass(Stone color) {
-    final key = color == Stone.black ? 'B' : 'W';
-    data[key] = [''];
-  }
-
-  void addBlack(Vertex vertex) => addStone(Stone.black, vertex);
-
-  void addWhite(Vertex vertex) => addStone(Stone.white, vertex);
-
-  RecursiveNode.move(this.id, this.parentId, Stone color, Vertex vertex)
-      : data = <String, List<String>>{},
-        children = <RecursiveNode>[] {
-    addStone(color, vertex);
-  }
-
-  RecursiveNode.pass(this.id, this.parentId, Stone color)
-      : data = <String, List<String>>{},
-        children = <RecursiveNode>[] {
-    addPass(color);
-  }
-
-  RecursiveNode.black(this.id, this.parentId, Vertex vertex)
-      : data = <String, List<String>>{},
-        children = <RecursiveNode>[] {
-    addStone(Stone.black, vertex);
-  }
-
-  RecursiveNode.white(this.id, this.parentId, Vertex vertex)
-      : data = <String, List<String>>{},
-        children = <RecursiveNode>[] {
-    addStone(Stone.white, vertex);
-  }
-
-  static String _toSgfCoord(Vertex v) {
-    String c(int n) => String.fromCharCode('a'.codeUnitAt(0) + n);
-    return '${c(v.x)}${c(v.y)}';
-  }
 
   @override
   bool operator ==(Object other) {

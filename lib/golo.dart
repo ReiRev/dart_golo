@@ -4,4 +4,5 @@ library golo;
 export 'src/go_board.dart';
 export 'src/game.dart';
 export 'src/node.dart';
-export 'src/game_tree.dart';
+export 'src/sgf_tree.dart';
+export 'src/board_tree.dart';

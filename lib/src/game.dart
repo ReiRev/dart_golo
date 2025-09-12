@@ -1,18 +1,18 @@
-import 'game_tree.dart';
+import 'sgf_tree.dart';
 import 'go_board.dart';
 import 'node.dart';
+import 'board_tree.dart';
 import 'sgf/parser.dart';
 import 'sgf/recursive_node.dart';
 
 class Game {
   Board _currentBoard;
-  GameTree _gameTree;
-  late final Node _rootNode;
-  late Node _currentNode;
+  SgfTree _gameTree;
+  late final BoardTree _store;
+  late final int _rootId;
+  late int _currentId;
   Stone _currentPlayer = Stone.black;
-  int _nextNodeId = 1;
-  final Map<int, Board> _boardHistory = <int, Board>{};
-  final Map<int, Node> _nodesById = <int, Node>{};
+  // Board snapshots and nodes are managed by GameTree.
 
   /// Creates a new game with a configurable board size.
   ///
@@ -20,32 +20,32 @@ class Game {
   /// - [height]: board height. When omitted, a square board is created.
   Game({int width = 19, int? height})
       : _currentBoard = Board.fromDimension(width, height),
-        _gameTree = GameTree([Node(0, null, {}, [])]) {
-    _rootNode = _gameTree[0];
-    _currentNode = _gameTree[0];
+        _gameTree = SgfTree() {
+    _rootId = _gameTree.addRoot(Node({}, []));
+    _currentId = _rootId;
+    _store = BoardTree();
     // Record initial empty board snapshot at root node id.
-    _boardHistory[_rootNode.id] = _currentBoard.clone();
-    _nodesById[_rootNode.id] = _rootNode;
+    _store.init(_rootId, _currentBoard.clone());
 
     // Initialize root metadata (e.g., board size) once.
     // The type of the game.
-    _rootNode.set('GM', '1');
+    _gameTree.nodeById(_rootId)!.set('GM', '1');
     // SGF format.
-    _rootNode.set('FF', '4');
+    _gameTree.nodeById(_rootId)!.set('FF', '4');
     // Charset
-    _rootNode.set('CA', 'UTF-8');
+    _gameTree.nodeById(_rootId)!.set('CA', 'UTF-8');
     // Application (Name:Version)
-    _rootNode.set('AP', 'Dart Golo');
+    _gameTree.nodeById(_rootId)!.set('AP', 'Dart Golo');
     final w = _currentBoard.width;
     final h = _currentBoard.height;
     final sz = w == h ? '$w' : '$w:$h';
-    _rootNode.set('SZ', sz);
+    _gameTree.nodeById(_rootId)!.set('SZ', sz);
   }
 
   /// Returns a snapshot of the board at the node with [nodeId].
   /// Throws [StateError] if no snapshot is recorded for [nodeId].
   Board boardAt(int nodeId) {
-    final b = _boardHistory[nodeId];
+    final b = _store[nodeId];
     if (b == null) {
       throw StateError('No board snapshot for nodeId=$nodeId');
     }
@@ -58,115 +58,115 @@ class Game {
 
   // ---- Common root metadata accessors ----
   /// SGF `RU`: Ruleset name. Examples: `Japanese`, `Chinese`, `AGA`.
-  String? get rule => _rootNode.get('RU');
-  set rule(String? value) => _rootNode.set('RU', value);
+  String? get rule => _gameTree.nodeById(_rootId)!.get('RU');
+  set rule(String? value) => _gameTree.nodeById(_rootId)!.set('RU', value);
 
   /// SGF `AP`: Application name and version (e.g. `Name:Version`). Default is `Dart Golo`.
-  String? get application => _rootNode.get('AP');
-  set application(String? value) => _rootNode.set('AP', value);
+  String? get application => _gameTree.nodeById(_rootId)!.get('AP');
+  set application(String? value) => _gameTree.nodeById(_rootId)!.set('AP', value);
 
   /// SGF `CA`: Charset for SimpleText/Text (e.g. `UTF-8`).
-  String? get charset => _rootNode.get('CA');
-  set charset(String? value) => _rootNode.set('CA', value);
+  String? get charset => _gameTree.nodeById(_rootId)!.get('CA');
+  set charset(String? value) => _gameTree.nodeById(_rootId)!.set('CA', value);
 
   /// SGF `EV`: Event/tournament name.
-  String? get event => _rootNode.get('EV');
-  set event(String? value) => _rootNode.set('EV', value);
+  String? get event => _gameTree.nodeById(_rootId)!.get('EV');
+  set event(String? value) => _gameTree.nodeById(_rootId)!.set('EV', value);
 
   /// SGF `RO`: Round information (e.g. `Game 1`, `Final`).
-  String? get round => _rootNode.get('RO');
-  set round(String? value) => _rootNode.set('RO', value);
+  String? get round => _gameTree.nodeById(_rootId)!.get('RO');
+  set round(String? value) => _gameTree.nodeById(_rootId)!.set('RO', value);
 
   /// SGF `PC`: Place/location.
-  String? get place => _rootNode.get('PC');
-  set place(String? value) => _rootNode.set('PC', value);
+  String? get place => _gameTree.nodeById(_rootId)!.get('PC');
+  set place(String? value) => _gameTree.nodeById(_rootId)!.set('PC', value);
 
   /// SGF `DT`: Date(s) of the game.
-  String? get date => _rootNode.get('DT');
-  set date(String? value) => _rootNode.set('DT', value);
+  String? get date => _gameTree.nodeById(_rootId)!.get('DT');
+  set date(String? value) => _gameTree.nodeById(_rootId)!.set('DT', value);
 
   // Players, ranks, teams, countries
   /// SGF `PB`: Black player name.
-  String? get playerBlack => _rootNode.get('PB');
-  set playerBlack(String? value) => _rootNode.set('PB', value);
+  String? get playerBlack => _gameTree.nodeById(_rootId)!.get('PB');
+  set playerBlack(String? value) => _gameTree.nodeById(_rootId)!.set('PB', value);
 
   /// SGF `PW`: White player name.
-  String? get playerWhite => _rootNode.get('PW');
-  set playerWhite(String? value) => _rootNode.set('PW', value);
+  String? get playerWhite => _gameTree.nodeById(_rootId)!.get('PW');
+  set playerWhite(String? value) => _gameTree.nodeById(_rootId)!.set('PW', value);
 
   /// SGF `BR`: Black rank (e.g. `9d`, `1k`, `6p`).
-  String? get blackRank => _rootNode.get('BR');
-  set blackRank(String? value) => _rootNode.set('BR', value);
+  String? get blackRank => _gameTree.nodeById(_rootId)!.get('BR');
+  set blackRank(String? value) => _gameTree.nodeById(_rootId)!.set('BR', value);
 
   /// SGF `WR`: White rank.
-  String? get whiteRank => _rootNode.get('WR');
-  set whiteRank(String? value) => _rootNode.set('WR', value);
+  String? get whiteRank => _gameTree.nodeById(_rootId)!.get('WR');
+  set whiteRank(String? value) => _gameTree.nodeById(_rootId)!.set('WR', value);
 
   /// SGF `BT`: Black team name.
-  String? get blackTeam => _rootNode.get('BT');
-  set blackTeam(String? value) => _rootNode.set('BT', value);
+  String? get blackTeam => _gameTree.nodeById(_rootId)!.get('BT');
+  set blackTeam(String? value) => _gameTree.nodeById(_rootId)!.set('BT', value);
 
   /// SGF `WT`: White team name.
-  String? get whiteTeam => _rootNode.get('WT');
-  set whiteTeam(String? value) => _rootNode.set('WT', value);
+  String? get whiteTeam => _gameTree.nodeById(_rootId)!.get('WT');
+  set whiteTeam(String? value) => _gameTree.nodeById(_rootId)!.set('WT', value);
 
   /// Non-standard: Black country/region. Not defined in SGF FF[4].
-  String? get blackCountry => _rootNode.get('BC');
-  set blackCountry(String? value) => _rootNode.set('BC', value);
+  String? get blackCountry => _gameTree.nodeById(_rootId)!.get('BC');
+  set blackCountry(String? value) => _gameTree.nodeById(_rootId)!.set('BC', value);
 
   /// Non-standard: White country/region. Not defined in SGF FF[4].
-  String? get whiteCountry => _rootNode.get('WC');
-  set whiteCountry(String? value) => _rootNode.set('WC', value);
+  String? get whiteCountry => _gameTree.nodeById(_rootId)!.get('WC');
+  set whiteCountry(String? value) => _gameTree.nodeById(_rootId)!.set('WC', value);
 
   // Game info
   /// SGF `GN`: Game name/title.
-  String? get name => _rootNode.get('GN');
-  set name(String? value) => _rootNode.set('GN', value);
+  String? get name => _gameTree.nodeById(_rootId)!.get('GN');
+  set name(String? value) => _gameTree.nodeById(_rootId)!.set('GN', value);
 
   /// SGF `GC`: Game comment (free text).
-  String? get comment => _rootNode.get('GC');
-  set comment(String? value) => _rootNode.set('GC', value);
+  String? get comment => _gameTree.nodeById(_rootId)!.get('GC');
+  set comment(String? value) => _gameTree.nodeById(_rootId)!.set('GC', value);
 
   /// SGF `AN`: Annotator/author of comments.
-  String? get annotator => _rootNode.get('AN');
-  set annotator(String? value) => _rootNode.set('AN', value);
+  String? get annotator => _gameTree.nodeById(_rootId)!.get('AN');
+  set annotator(String? value) => _gameTree.nodeById(_rootId)!.set('AN', value);
 
   /// SGF `CP`: Copyright notice.
-  String? get copyright => _rootNode.get('CP');
-  set copyright(String? value) => _rootNode.set('CP', value);
+  String? get copyright => _gameTree.nodeById(_rootId)!.get('CP');
+  set copyright(String? value) => _gameTree.nodeById(_rootId)!.set('CP', value);
 
   /// SGF `SO`: Source (book, journal, URL, etc.).
-  String? get source => _rootNode.get('SO');
-  set source(String? value) => _rootNode.set('SO', value);
+  String? get source => _gameTree.nodeById(_rootId)!.get('SO');
+  set source(String? value) => _gameTree.nodeById(_rootId)!.set('SO', value);
 
   // Result, Komi, Handicap, Overtime and time settings
   /// SGF `RE`: Result. Examples: `B+R`, `W+0.5`, `Void`, `?`.
-  String? get result => _rootNode.get('RE');
-  set result(String? value) => _rootNode.set('RE', value);
+  String? get result => _gameTree.nodeById(_rootId)!.get('RE');
+  set result(String? value) => _gameTree.nodeById(_rootId)!.set('RE', value);
 
   /// SGF `KM`: Komi (real value, e.g. `7.5`).
-  String? get komi => _rootNode.get('KM');
-  set komi(String? value) => _rootNode.set('KM', value);
+  String? get komi => _gameTree.nodeById(_rootId)!.get('KM');
+  set komi(String? value) => _gameTree.nodeById(_rootId)!.set('KM', value);
 
   /// SGF `HA`: Handicap count (number of handicap stones).
-  String? get handicap => _rootNode.get('HA');
-  set handicap(String? value) => _rootNode.set('HA', value);
+  String? get handicap => _gameTree.nodeById(_rootId)!.get('HA');
+  set handicap(String? value) => _gameTree.nodeById(_rootId)!.set('HA', value);
 
   /// SGF `OT`: Overtime settings (free text, e.g. `3x60 byo-yomi`).
-  String? get overtime => _rootNode.get('OT');
-  set overtime(String? value) => _rootNode.set('OT', value);
+  String? get overtime => _gameTree.nodeById(_rootId)!.get('OT');
+  set overtime(String? value) => _gameTree.nodeById(_rootId)!.set('OT', value);
 
   /// SGF `TM`: Main time limit in seconds.
-  String? get time => _rootNode.get('TM');
-  set time(String? value) => _rootNode.set('TM', value);
+  String? get time => _gameTree.nodeById(_rootId)!.get('TM');
+  set time(String? value) => _gameTree.nodeById(_rootId)!.set('TM', value);
 
   /// Non-standard: Byo-yomi periods count. Prefer describing in `OT` for portability.
-  String? get byoYomiPeriods => _rootNode.get('LC');
-  set byoYomiPeriods(String? value) => _rootNode.set('LC', value);
+  String? get byoYomiPeriods => _gameTree.nodeById(_rootId)!.get('LC');
+  set byoYomiPeriods(String? value) => _gameTree.nodeById(_rootId)!.set('LC', value);
 
   /// Non-standard: Byo-yomi period length. Prefer describing in `OT` for portability.
-  String? get byoYomiLength => _rootNode.get('LT');
-  set byoYomiLength(String? value) => _rootNode.set('LT', value);
+  String? get byoYomiLength => _gameTree.nodeById(_rootId)!.get('LT');
+  set byoYomiLength(String? value) => _gameTree.nodeById(_rootId)!.set('LT', value);
 
   /// Plays a move for the current player at [vertex].
   ///
@@ -174,28 +174,22 @@ class Game {
   ///   [IllegalMoveException] when violated.
   /// - Updates the internal SGF tree by appending a node to the current line.
   void play(Vertex vertex) {
-    // Apply the move to produce a new board state.
-    _currentBoard = _currentBoard.makeMove(
-      vertex,
+    // Apply the move via BoardStore so snapshots stay canonical.
+    // Create node first to obtain newId, then commit move via BoardTree cursor.
+    final node = Node.move(_currentPlayer, vertex);
+    final newId = _gameTree.addChild(node, parentId: _currentId);
+    _store.moveTo(_currentId);
+    _currentBoard = _store.commitMove(
+      newId,
       _currentPlayer,
+      vertex,
       preventOutOfBoard: true,
       preventOverwrite: true,
       preventSuicide: true,
       preventKo: true,
     );
-
-    // Append a node to the current game tree branch.
-    final node = Node.move(
-      _nextNodeId++,
-      _currentNode.id,
-      _currentPlayer,
-      vertex,
-    );
-    _currentNode.children.add(node);
-    _currentNode = node;
-    // Record snapshot for this node.
-    _boardHistory[node.id] = _currentBoard.clone();
-    _nodesById[node.id] = node;
+    _gameTree.moveTo(newId);
+    _currentId = newId;
 
     // Alternate player.
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
@@ -203,16 +197,12 @@ class Game {
 
   /// Passes the current player's turn.
   void pass() {
-    final node = Node.pass(
-      _nextNodeId++,
-      _currentNode.id,
-      _currentPlayer,
-    );
-    _currentNode.children.add(node);
-    _currentNode = node;
-    // Record snapshot (same position) for this node as well.
-    _boardHistory[node.id] = _currentBoard.clone();
-    _nodesById[node.id] = node;
+    final node = Node.pass(_currentPlayer);
+    final newId = _gameTree.addChild(node, parentId: _currentId);
+    _store.moveTo(_currentId);
+    _currentBoard = _store.commitPass(newId, _currentPlayer);
+    _gameTree.moveTo(newId);
+    _currentId = newId;
     _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
@@ -247,12 +237,13 @@ class Game {
     for (final entry in root.data.entries) {
       final key = entry.key;
       if (key == 'B' || key == 'W') continue;
-      game._rootNode.data[key] = List<String>.from(entry.value);
+      game._gameTree.nodeById(game._rootId)!.data[key] =
+          List<String>.from(entry.value);
     }
 
     // Apply root setup stones to initial board and refresh snapshot.
     _applySetup(root.data, game._currentBoard);
-    game._boardHistory[game._rootNode.id] = game._currentBoard.clone();
+    game._store[game._rootId] = game._currentBoard.clone();
 
     // Walk main line and apply moves/passes.
     final mainline = <RecursiveNode>[];
@@ -291,14 +282,14 @@ class Game {
       final cvals = node.data['C'];
       final comment = (cvals != null && cvals.isNotEmpty) ? cvals.first : null;
       if (comment != null && comment.isNotEmpty) {
-        game._currentNode.set('C', comment);
-      }
+        game._gameTree.nodeById(game._currentId)!.set('C', comment);
+    }
     }
 
     return game;
   }
 
-  bool get canUndo => _currentNode.id != _rootNode.id;
+  bool get canUndo => _currentId != _rootId;
 
   /// Undo the last move/pass, moving back to the parent node.
   ///
@@ -306,10 +297,10 @@ class Game {
   /// - Returns `null` if already at the root (nothing to undo).
   Board? undo() {
     if (!canUndo) return null;
-    final undone = _currentNode;
-    final parentId = undone.parentId;
+    final undone = _gameTree.nodeById(_currentId)!;
+    final parentId = _gameTree.parentOf(_currentId);
     if (parentId == null) return null;
-    final parent = _nodesById[parentId] ?? _rootNode;
+    final parent = _gameTree.nodeById(parentId)!;
 
     // Determine undone color from node data (B or W)
     Stone? undoneColor;
@@ -319,8 +310,8 @@ class Game {
       undoneColor = Stone.white;
     }
 
-    _currentNode = parent;
-    _currentBoard = boardAt(parent.id);
+    _currentId = parentId;
+    _currentBoard = boardAt(parentId);
     if (undoneColor != null) {
       _currentPlayer = undoneColor;
     }
