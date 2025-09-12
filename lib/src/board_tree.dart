@@ -1,15 +1,14 @@
 import 'dart:collection';
 import 'go_board.dart';
 
-/// Stores canonical Board snapshots keyed by node IDs (integers).
-///
-/// This class is intentionally agnostic of any tree structure. It provides
-/// only a cloning Map interface for safe snapshot storage and retrieval.
+/// Stores canonical Board snapshots keyed by node IDs.
+/// Agnostic of tree structure; exposes a cloning Map interface.
 class BoardTree extends MapBase<int, Board> {
   final Map<int, Board> _boardsById = <int, Board>{};
   int? _cursor;
 
   int? get cursorId => _cursor;
+
   /// Returns a clone of the Board at the current cursor, or null if unset.
   Board? get cursor => _cursor == null ? null : _boardsById[_cursor!]?.clone();
 
@@ -24,7 +23,6 @@ class BoardTree extends MapBase<int, Board> {
     _cursor = id;
   }
 
-  // --- MapBase<int, Board> implementation ---
   @override
   Board? operator [](Object? key) {
     if (key is! int) return null;
@@ -81,7 +79,7 @@ class BoardTree extends MapBase<int, Board> {
       preventKo: preventKo,
     );
 
-    this[newId] = newBoard; // stores a clone
+    this[newId] = newBoard;
     moveTo(newId);
     return newBoard.clone();
   }
@@ -97,7 +95,7 @@ class BoardTree extends MapBase<int, Board> {
     if (parentBoard == null) {
       throw StateError('No board snapshot for cursorId=$pid');
     }
-    this[newId] = parentBoard; // identical snapshot
+    this[newId] = parentBoard;
     moveTo(newId);
     return parentBoard.clone();
   }

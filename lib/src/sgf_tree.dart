@@ -1,21 +1,19 @@
 import 'node.dart';
 
-/// SgfTree manages the node graph and SGF data (no Board snapshots).
+/// Manages SGF node graph and data (no Board snapshots).
 class SgfTree {
   final Map<int, Node> _nodesById = <int, Node>{};
   final Map<int, int?> _parentOf = <int, int?>{};
 
-  /// Top-level root node IDs.
   final List<int> rootNodes = <int>[];
 
-  /// Current cursor pointing to a node ID.
   int? _cursor;
 
   int _nextId = 0;
 
   SgfTree();
 
-  /// Adds a root node and returns its assigned ID.
+  /// Adds a root node and returns its ID.
   int addRoot(Node node) {
     final id = _nextId++;
     _nodesById[id] = node;
@@ -25,7 +23,7 @@ class SgfTree {
     return id;
   }
 
-  /// Adds [node] as a child. When [parentId] is omitted, uses current cursor.
+  /// Adds [node] as a child; defaults to current cursor.
   int addChild(Node node, {int? parentId}) {
     final pid = parentId ?? _cursor;
     if (pid == null) {
@@ -42,10 +40,7 @@ class SgfTree {
     return id;
   }
 
-  // --- Nodes management ---
   Node? nodeById(int id) => _nodesById[id];
-
-  // Nodes are added via addRoot/addChild.
 
   int? get cursor => _cursor;
   int? get cursorId => _cursor;
@@ -54,7 +49,6 @@ class SgfTree {
     if (_nodesById.containsKey(id)) _cursor = id;
   }
 
-  // --- Navigation ---
   List<int> get nextChildren {
     final cur = _cursor;
     if (cur == null) return const [];

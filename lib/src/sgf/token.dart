@@ -56,24 +56,22 @@ enum TokenType {
 }
 
 /// Iterator with lookahead capability.
-///
-/// - [peek] returns the next element without consuming it.
-/// - [next] advances by one and returns that element, or `null` at the end.
-/// - [moveNext] and [current] follow Dart's `Iterator` contract.
+/// - [peek] returns next element without consuming.
+/// - [next] advances and returns element or `null` at end.
 class Peekable<E> implements Iterator<E> {
   final List<E> _items;
-  int _index = -1; // before first element
+  int _index = -1;
 
   Peekable(Iterable<E> iterable) : _items = List<E>.from(iterable);
 
-  /// Returns the next element without consuming it, or `null` at the end.
+  /// Returns next element without consuming, or `null` at end.
   E? peek() {
     final nextIndex = _index + 1;
     if (nextIndex >= _items.length) return null;
     return _items[nextIndex];
   }
 
-  /// Advances by one and returns that element, or `null` at the end.
+  /// Advances one and returns it, or `null` at end.
   E? next() {
     if (!moveNext()) return null;
     return _items[_index];
@@ -142,13 +140,11 @@ class TokenIterator extends Peekable<Token> {
       for (var i = 0; i < lexeme.length; i++) {
         final ch = lexeme.codeUnitAt(i);
         if (ch == 0x0A) {
-          // \n
           row += 1;
           col = 0;
         } else if (ch == 0x0D) {
-          // \r (normalize CRLF)
           if (i + 1 < lexeme.length && lexeme.codeUnitAt(i + 1) == 0x0A) {
-            i += 1; // consume LF after CR
+            i += 1;
           }
           row += 1;
           col = 0;
@@ -164,7 +160,6 @@ class TokenIterator extends Peekable<Token> {
       if (ws != null) {
         final lex = ws.group(0)!;
         advanceByLexeme(lex);
-        // ignoreWhitespace is always true -> skip emitting whitespace tokens
         continue;
       }
 
@@ -208,7 +203,6 @@ class TokenIterator extends Peekable<Token> {
       }
 
       final invalidLex = text[pos];
-      // emitInvalid is always true -> always emit invalid token
       yield makeToken(
           TokenType.invalid, invalidLex, startPos, startRow, startCol);
       advanceByLexeme(invalidLex);

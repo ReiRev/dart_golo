@@ -1,17 +1,14 @@
 import 'token.dart';
 import 'recursive_node.dart';
 
-/// Callback that generates node IDs.
-/// The default is a simple sequence 0,1,2,...
+/// Callback that generates node IDs (default: 0,1,2,...).
 typedef IdGenerator = int Function();
 
 /// Callback invoked whenever a node is finalized/created.
 typedef NodeCallback = void Function(RecursiveNode node);
 
 /// Unescapes SGF backslash-escaping.
-/// A backslash escapes the next single character (including `]`, `\\`, `\n`, etc.).
 String _unescapeSgfValue(String s) {
-  // SGF escaping: backslash escapes the next character (including ']','\','\n', etc.)
   final buf = StringBuffer();
   for (var i = 0; i < s.length; i++) {
     final ch = s[i];
@@ -56,15 +53,11 @@ class Parser {
       onNodeCreated: onNodeCreated,
     );
 
-    // When no content is parsed, return an empty dummy anchor.
     return root ?? RecursiveNode(-1, null, {}, []);
   }
 
   /// Recursive-descent parsing of a sequence/variation.
-  ///
-  /// [parentId] is the ID of the parent node. Returns the anchor node of the
-  /// just-parsed linear sequence; at the top level this may be a dummy anchor
-  /// (with a negative `id`).
+  /// Returns the anchor node (dummy with negative `id` at top level).
   RecursiveNode? _parseTokens(
     Peekable<Token> tokens,
     int? parentId, {
@@ -106,7 +99,6 @@ class Parser {
       }
 
       if (type == TokenType.semicolon) {
-        // Node start; nothing else to do here.
       } else if (type == TokenType.propertyIdentifier) {
         if (node != null) {
           final v = value;
@@ -131,7 +123,6 @@ class Parser {
         }
       } else if (type == TokenType.propertyValue) {
         if (property != null) {
-          // Strip the surrounding brackets
           final inner = value.substring(1, value.length - 1);
           property.add(_unescapeSgfValue(inner));
         }
@@ -146,8 +137,6 @@ class Parser {
     }
 
     if (node == null) {
-      // Create a dummy anchor for grouping top-level variations.
-      // Use a negative id to distinguish from real nodes (0,1,2,...).
       anchor = node = RecursiveNode(-1, null, {}, []);
     } else {
       onNodeCreated(node);

@@ -1,5 +1,3 @@
-// Standalone SGF tree node without dependencies on Board or game types.
-
 /// SGF-specific recursive node used by the parser.
 ///
 /// Standalone structure for SGF trees. Not tied to game.Node.

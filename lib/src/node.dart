@@ -1,27 +1,20 @@
 import 'go_board.dart';
 
-/// A node in a game tree (Game-side structure).
-///
-/// - [data]: Map of SGF properties. Keys are identifiers (e.g. `B`, `W`, `AB`, `SZ`),
-///   values are arrays holding zero or more values for that property.
-/// - [children]: Variations (branches) represented as child node IDs.
-///
-/// Parent-child relationships are managed by SgfTree; Node itself does not
-/// hold a parent reference.
+/// Game-side node holding SGF properties and child IDs.
+/// Parent links are managed by `SgfTree`.
 class Node {
   Map<String, List<String>> data = {};
   List<int> children;
 
   Node(this.data, this.children);
 
-  /// Returns the first value of the SGF property [key], or `null` if absent.
+  /// First value of SGF property [key], or `null`.
   String? get(String key) {
     final values = data[key];
     return (values != null && values.isNotEmpty) ? values.first : null;
   }
 
-  /// Sets the SGF property [key] to a single [value].
-  /// If [value] is `null` or empty, removes the property.
+  /// Sets SGF property [key] to a single [value]; removes when null/empty.
   void set(String key, String? value) {
     if (value == null || value.isEmpty) {
       data.remove(key);
@@ -30,53 +23,50 @@ class Node {
     }
   }
 
-  /// Adds a move for [color] at [vertex] to this node using SGF `B`/`W`.
+  /// Adds move for [color] at [vertex] (`B`/`W`).
   void addStone(Stone color, Vertex vertex) {
     final key = color == Stone.black ? 'B' : 'W';
     data[key] = [_toSgfCoord(vertex)];
   }
 
-  /// Adds a pass move for [color] (empty value for `B`/`W`).
+  /// Adds a pass for [color] (empty `B`/`W`).
   void addPass(Stone color) {
     final key = color == Stone.black ? 'B' : 'W';
     data[key] = [''];
   }
 
-  /// Convenience for Black move.
   void addBlack(Vertex vertex) => addStone(Stone.black, vertex);
-
-  /// Convenience for White move.
   void addWhite(Vertex vertex) => addStone(Stone.white, vertex);
 
-  /// Named constructor that creates a node representing a move.
+  /// Move node.
   Node.move(Stone color, Vertex vertex)
       : data = <String, List<String>>{},
         children = <int>[] {
     addStone(color, vertex);
   }
 
-  /// Named constructor that creates a node representing a pass.
+  /// Pass node.
   Node.pass(Stone color)
       : data = <String, List<String>>{},
         children = <int>[] {
     addPass(color);
   }
 
-  /// Named constructor for a Black move node.
+  /// Black move node.
   Node.black(Vertex vertex)
       : data = <String, List<String>>{},
         children = <int>[] {
     addStone(Stone.black, vertex);
   }
 
-  /// Named constructor for a White move node.
+  /// White move node.
   Node.white(Vertex vertex)
       : data = <String, List<String>>{},
         children = <int>[] {
     addStone(Stone.white, vertex);
   }
 
-  // Converts a 0-based vertex to an SGF coordinate string (e.g., aa, dp).
+  // SGF coordinate string (e.g., aa, dp).
   static String _toSgfCoord(Vertex v) {
     String c(int n) => String.fromCharCode('a'.codeUnitAt(0) + n);
     return '${c(v.x)}${c(v.y)}';
