@@ -366,19 +366,21 @@ void main() {
   group('undo', () {
     test('rewinds a normal move and returns board', () {
       final game = Game();
-      game.play((x: 3, y: 3)); // B
-      game.play((x: 4, y: 3)); // W
-      final snapshot = game.board; // board after two moves
-      game.play((x: 5, y: 3)); // B
+      final b1 = (x: 3, y: 3);
+      final w1 = (x: 4, y: 3);
+      final b2 = (x: 5, y: 3);
+
+      game.play(b1); // B
+      game.play(w1); // W
+      game.play(b2); // B
 
       final undone = game.undo();
       expect(undone, isNotNull);
 
-      final cur = game.board;
-      final diff = cur.diff(snapshot);
-      expect(diff, isNotNull);
-      expect(diff!.isEmpty, true);
       expect(game.currentPlayer, Stone.black); // undone B, so B to play
+      expect(undone!.get(b1), Stone.black);
+      expect(undone.get(w1), Stone.white);
+      expect(undone.get(b2), isNull);
     });
 
     test('handles pass correctly and returns board', () {
