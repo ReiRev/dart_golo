@@ -3,6 +3,49 @@ import 'package:golo/golo.dart';
 
 void main() {
   group('SgfTree', () {
+    group('basics/edge-cases', () {
+      test('fresh tree has null cursor and empty toSgf', () {
+        final tree = SgfTree();
+        expect(tree.cursorId, isNull);
+        expect(tree.data, isEmpty);
+        expect(tree.toSgf(), '');
+        expect(tree.nextChildren, isEmpty);
+      });
+
+      test('dataAt for unknown id returns empty map', () {
+        final tree = SgfTree();
+        expect(tree.dataAt(999), isEmpty);
+      });
+
+      test('addChild without parent and null cursor throws', () {
+        final tree = SgfTree();
+        expect(() => tree.addChild(Node({}, [])), throwsStateError);
+      });
+
+      test('addChild to non-existent parent throws', () {
+        final tree = SgfTree();
+        tree.addRoot(Node({}, []));
+        expect(() => tree.addChild(Node({}, []), parentId: 999), throwsStateError);
+      });
+
+      test('goNextAt out of bounds is ignored', () {
+        final tree = SgfTree();
+        final root = tree.addRoot(Node({}, []));
+        tree.moveTo(root);
+        final c1 = tree.addChild(Node({}, []), parentId: root);
+        expect(tree.nextChildren, [c1]);
+        tree.goNextAt(5); // ignored
+        expect(tree.cursorId, root);
+      });
+
+      test('goSibling on single root keeps cursor', () {
+        final tree = SgfTree();
+        final r1 = tree.addRoot(Node({}, []));
+        tree.moveTo(r1);
+        tree.goSibling();
+        expect(tree.cursorId, r1);
+      });
+    });
     group('addRoot', () {
       test('adds a root node and sets cursor if null', () {
         final tree = SgfTree();
