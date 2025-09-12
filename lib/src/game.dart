@@ -290,7 +290,6 @@ class Game {
     final undone = _sgfTree.nodeById(_currentId)!;
     final parentId = _sgfTree.parentOf(_currentId);
     if (parentId == null) return null;
-    final parent = _sgfTree.nodeById(parentId)!;
 
     // Determine undone color from node data.
     Stone? undoneColor;
