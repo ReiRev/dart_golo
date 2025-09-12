@@ -1,4 +1,4 @@
-// Interactive REPL example for the golo package.
+// Interactive REPL example for the golo package, implemented with Game.
 
 import 'dart:io';
 import 'package:args/args.dart';
@@ -22,31 +22,24 @@ void main(List<String> args) {
     return;
   }
 
-  int width = int.tryParse(results['width']) ?? 19;
-  int height = int.tryParse(results['height']) ?? 19;
+  final width = int.tryParse(results['width']) ?? 19;
+  final height = int.tryParse(results['height']) ?? 19;
 
-  var board = Board.fromDimension(width, height);
+  var game = Game(width: width, height: height);
 
-  final handicapStr = results['handicap'] as String?;
-  var handicap = handicapStr != null ? int.tryParse(handicapStr) ?? 0 : 0;
-  final tygem = results['tygem'] == true;
-  if (handicap > 0) {
-    final spots = board.getHandicapPlacement(handicap, tygem: tygem);
-    for (final v in spots) {
-      board.set(v, Stone.black);
-    }
+  // Adjust who plays first if requested explicitly; otherwise default is
+  // Black, or White when handicap stones were placed.
+  final toPlayFlag = results['to-play'] as String?;
+  final requested = _parseColor(toPlayFlag ?? '');
+  if (requested != null && requested != game.currentPlayer) {
+    // Toggle by a pass to switch side.
+    game.pass();
   }
 
-  final toPlayFlag = results['to-play'] as String?;
-  var toPlay = _parseColor(toPlayFlag ?? '') ??
-      (handicap > 0 ? Stone.white : Stone.black);
-
-  final history = <Board>[];
-
-  _printWelcome(board, toPlay, handicap: handicap);
+  _printWelcome(game);
 
   while (true) {
-    stdout.write(_prompt(toPlay));
+    stdout.write(_prompt(game.currentPlayer));
     final line = stdin.readLineSync();
     if (line == null) {
       stdout.writeln('');
@@ -55,7 +48,7 @@ void main(List<String> args) {
 
     final input = line.trim();
     if (input.isEmpty) {
-      stdout.writeln(board);
+      stdout.writeln(game.board);
       continue;
     }
 
@@ -74,23 +67,19 @@ void main(List<String> args) {
           return;
         case 'show':
         case 'board':
-          // fallthrough to print after switch
+          // Will print after switch
           break;
         case 'captures':
-          _printCaptures(board);
+          _printCaptures(game.board);
           break;
         case 'pass':
-          history.add(board);
-          board = board.copyWith(koInfo: null);
-          toPlay = _opponentOf(toPlay);
+          game.pass();
           stdout.writeln('Pass.');
           break;
         case 'undo':
-          if (history.isEmpty) {
+          final undone = game.undo();
+          if (undone == null) {
             stdout.writeln('Nothing to undo.');
-          } else {
-            board = history.removeLast();
-            toPlay = _opponentOf(toPlay);
           }
           break;
         case 'new':
@@ -99,12 +88,11 @@ void main(List<String> args) {
           if (dims == null) {
             stdout.writeln('Usage: new <N>[x<M>], e.g. new 19 or new 9x13');
           } else {
-            board = dims.$2 == null
-                ? Board.fromDimension(dims.$1)
-                : Board.fromDimension(dims.$1, dims.$2);
-            toPlay = Stone.black;
-            history.clear();
-            stdout.writeln('Started new ${board.width}x${board.height} board.');
+            game = dims.$2 == null
+                ? Game(width: dims.$1)
+                : Game(width: dims.$1, height: dims.$2);
+            stdout.writeln(
+                'Started new ${game.board.width}x${game.board.height} board.');
           }
           break;
         case 'libs':
@@ -114,11 +102,12 @@ void main(List<String> args) {
             stdout.writeln('Usage: libs <coord> (e.g. libs D4)');
             break;
           }
-          final v = board.parseVertex(parts[1]);
+          final v = game.board.parseVertex(parts[1]);
           if (v == null) {
             stdout.writeln('Invalid coordinate: ${parts[1]}');
             break;
           }
+          final board = game.board;
           final libs = board
               .getLiberties(v)
               .map(board.stringifyVertex)
@@ -133,53 +122,37 @@ void main(List<String> args) {
         case 'move':
         case 'put':
         case 'place':
-          final play = _parsePlayCommand(cmd, parts, board, toPlay);
-          if (play == null) {
+          final parsed = _parsePlayCommand(cmd, parts, game.board, game.currentPlayer);
+          if (parsed == null) {
             _printPlayUsage();
             break;
           }
-          history.add(board);
-          board = board.makeMove(
-            play.$2, // vertex
-            play.$1, // stone
-            preventOutOfBoard: true,
-            preventOverwrite: true,
-            preventSuicide: true,
-            preventKo: true,
-          );
-          toPlay = _opponentOf(play.$1);
+          // If user forced color different from current, insert a pass to switch.
+          final desired = parsed.$1;
+          if (desired != game.currentPlayer) {
+            game.pass();
+          }
+          game.play(parsed.$2);
           break;
         default:
-          // If user typed just a coordinate like "D4", treat as auto-turn play.
-          final v = board.parseVertex(parts[0]);
+          // Bare coordinate like "D4": play for the current player.
+          final v = game.board.parseVertex(parts[0]);
           if (v != null) {
-            history.add(board);
-            board = board.makeMove(
-              v,
-              toPlay,
-              preventOutOfBoard: true,
-              preventOverwrite: true,
-              preventSuicide: true,
-              preventKo: true,
-            );
-            toPlay = _opponentOf(toPlay);
+            game.play(v);
           } else {
             stdout.writeln('Unknown command. Type `help` for a list.');
           }
       }
     } on IllegalMoveException catch (e) {
-      if (history.isNotEmpty) history.removeLast();
-      final v = _displayVertex(board, e.vertex);
+      final v = _displayVertex(game.board, e.vertex);
       stdout.writeln('Illegal move: ${e.reason.name} at $v');
     } catch (e) {
       stdout.writeln('Error: $e');
     }
 
-    stdout.writeln(board);
+    stdout.writeln(game.board);
   }
 }
-
-Stone _opponentOf(Stone s) => s == Stone.black ? Stone.white : Stone.black;
 
 ArgParser _buildArgParser() => ArgParser()
   ..addOption('width', valueHelp: 'N', help: 'Board width', defaultsTo: '19')
@@ -208,6 +181,7 @@ void _printCliUsage(ArgParser parser) {
       '  dart run example/golo_repl.dart --width 9 --height 13 -H 4 --tygem');
   stdout.writeln('  dart run example/golo_repl.dart --height 13 --to-play w');
   stdout.writeln();
+  stdout.writeln('Note: handicap options are currently ignored.');
   stdout.writeln('Inside the REPL, type `help` for available commands.');
 }
 
@@ -264,11 +238,11 @@ Stone? _parseColor(String s) {
 
 String _prompt(Stone toPlay) => '[${toPlay == Stone.black ? 'B' : 'W'}] > ';
 
-void _printWelcome(Board board, Stone toPlay, {int handicap = 0}) {
-  final tp = toPlay == Stone.black ? 'B' : 'W';
-  final extra = handicap > 0 ? ', handicap: $handicap' : '';
+void _printWelcome(Game game) {
+  final board = game.board;
+  final tp = game.currentPlayer == Stone.black ? 'B' : 'W';
   stdout
-      .writeln('Go REPL — ${board.width}x${board.height} (to-play: $tp$extra)');
+      .writeln('Go REPL — ${board.width}x${board.height} (to-play: $tp)');
   _printHelp();
   stdout.writeln(board);
 }
@@ -282,7 +256,8 @@ void _printCaptures(Board board) {
 void _printHelp() {
   stdout.writeln('Commands:');
   stdout.writeln('  play <coord>           e.g. play D4 (auto turn)');
-  stdout.writeln('  b <coord> | w <coord>  e.g. b D4 (force color)');
+  stdout.writeln(
+      '  b <coord> | w <coord>  e.g. b D4 (forces color by inserting pass)');
   stdout.writeln('  libs <coord>           show liberties of a stone');
   stdout.writeln('  captures               show capture counts');
   stdout.writeln('  pass                   pass and switch turn');

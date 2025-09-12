@@ -1,22 +1,15 @@
-/// Core data types and APIs for Go (Baduk/Weiqi) board logic.
 import 'dart:math';
 
-/// Type of a stone on the board.
+/// Stone colors.
 enum Stone {
   black,
   white,
 }
 
-/// A 0-based board coordinate.
-///
-/// - [x]: column index from the left, starting at 0
-/// - [y]: row index from the top, starting at 0
+/// 0-based board coordinate `(x,y)`.
 typedef Vertex = ({int x, int y});
 
-/// Information about Ko (recapture ban).
-///
-/// - [stone]: the color that is currently forbidden to recapture
-/// - [vertex]: the Ko coordinate where recapture is forbidden
+/// Ko (immediate recapture ban) info.
 typedef KoInfo = ({Stone stone, Vertex vertex});
 
 /// Reasons why a move is considered illegal.
@@ -84,16 +77,13 @@ class Board {
     }
   }
 
-  /// Creates an empty board of size [width] × [height].
-  /// If [height] is omitted, a square board is created.
+  /// Creates an empty board of size [width]×[height] (square if [height] omitted).
   Board.fromDimension(int width, [int? height])
       : this(List.generate(
             height ?? width, (_) => List.generate(width, (_) => null)));
 
-  /// Number of rows (height).
   int get height => state.length;
 
-  /// Number of columns (width).
   int get width => state[0].length;
 
   /// Returns the stone at [vertex], or `null` if empty or out of board.
@@ -103,10 +93,8 @@ class Board {
   bool has(Vertex vertex) =>
       0 <= vertex.x && vertex.x < width && 0 <= vertex.y && vertex.y < height;
 
-  /// Returns whether the board is square.
   bool isSquare() => width == height;
 
-  /// Returns whether the board is empty (all points are `null`).
   bool isEmpty() => state.every((row) => row.every((stone) => stone == null));
 
   /// Sets [stone] at [vertex]. Use `null` to clear a point.
@@ -250,11 +238,8 @@ class Board {
     ].where((vertex) => has(vertex)).toList();
   }
 
-  /// Depth-first search to collect a connected component starting at [vertex]
-  /// following the [predicate].
-  ///
-  /// Returns an empty list if [vertex] is out of board. The optional [result]
-  /// is used for recursion and should not be supplied by callers.
+  /// Collects a connected component via [predicate] starting at [vertex].
+  /// Returns an empty list if [vertex] is out of board.
   List<Vertex> getConnectedComponent(
     Vertex vertex,
     bool Function(Vertex vertex) predicate, [
@@ -263,7 +248,6 @@ class Board {
     if (!has(vertex)) return [];
     result ??= [vertex];
 
-    // Recursive depth-first search
     for (final vertex_ in getNeighbors(vertex)) {
       if (!predicate(vertex_)) continue;
       final already = result.any((w) => w.x == vertex_.x && w.y == vertex_.y);
@@ -294,7 +278,7 @@ class Board {
     return liberties.toList();
   }
 
-  /// Returns the Manhattan distance between [v1] and [v2].
+  /// Manhattan distance between [v1] and [v2].
   int getDistance(Vertex v1, Vertex v2) {
     return (v1.x - v2.x).abs() + (v1.y - v2.y).abs();
   }

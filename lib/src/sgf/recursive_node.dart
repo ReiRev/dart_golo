@@ -1,22 +1,18 @@
-/// A node in an SGF game tree.
+/// SGF-specific recursive node used by the parser.
 ///
-/// - [id]: Unique node ID. The dummy anchor for a root sequence may be `null`.
-/// - [parentId]: Parent node ID. Nodes directly under the root may have `null`.
-/// - [data]: Map of SGF properties. Keys are identifiers (e.g. `B`, `W`, `AB`, `SZ`),
-///   values are arrays holding zero or more values for that property.
-/// - [children]: Variations (branches) represented as child nodes.
-class Node {
-  int? id;
+/// Standalone structure for SGF trees. Not tied to game.Node.
+class RecursiveNode {
+  int id;
   int? parentId;
   Map<String, List<String>> data;
-  List<Node> children;
+  List<RecursiveNode> children;
 
-  Node(this.id, this.parentId, this.data, this.children);
+  RecursiveNode(this.id, this.parentId, this.data, this.children);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! Node) return false;
+    if (other is! RecursiveNode) return false;
     if (id != other.id || parentId != other.parentId) return false;
     if (data.length != other.data.length) return false;
     for (final key in data.keys) {
