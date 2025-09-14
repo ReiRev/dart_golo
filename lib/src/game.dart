@@ -48,6 +48,12 @@ class Game {
 
   Stone get currentPlayer => _currentPlayer;
 
+  /// ID of the root node in the SGF tree.
+  int get rootId => _rootId;
+
+  /// ID of the current node (cursor) in the SGF tree.
+  int get currentId => _currentId;
+
   // ---- Common root metadata accessors ----
   /// SGF `RU`: Ruleset name. Examples: `Japanese`, `Chinese`, `AGA`.
   String? get rule => _sgfTree.nodeById(_rootId)!.get('RU');
