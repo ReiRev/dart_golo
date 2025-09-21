@@ -28,7 +28,9 @@ void main() {
       expect(store[id2], isNull);
     });
 
-    test('cursor + commitMove/commitPass operate on current snapshot and new ids', () {
+    test(
+        'cursor + commitMove/commitPass operate on current snapshot and new ids',
+        () {
       final store = BoardTree();
       final root = 100;
       store.init(root, Board.fromDimension(9, 9));

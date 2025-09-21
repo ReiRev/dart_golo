@@ -122,7 +122,8 @@ void main(List<String> args) {
         case 'move':
         case 'put':
         case 'place':
-          final parsed = _parsePlayCommand(cmd, parts, game.board, game.currentPlayer);
+          final parsed =
+              _parsePlayCommand(cmd, parts, game.board, game.currentPlayer);
           if (parsed == null) {
             _printPlayUsage();
             break;
@@ -241,8 +242,7 @@ String _prompt(Stone toPlay) => '[${toPlay == Stone.black ? 'B' : 'W'}] > ';
 void _printWelcome(Game game) {
   final board = game.board;
   final tp = game.currentPlayer == Stone.black ? 'B' : 'W';
-  stdout
-      .writeln('Go REPL — ${board.width}x${board.height} (to-play: $tp)');
+  stdout.writeln('Go REPL — ${board.width}x${board.height} (to-play: $tp)');
   _printHelp();
   stdout.writeln(board);
 }

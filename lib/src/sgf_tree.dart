@@ -127,6 +127,7 @@ class SgfTree {
       }
       toRemove.add(nid);
     }
+
     dfs(id);
 
     final keepSelf = !includeSelf;
