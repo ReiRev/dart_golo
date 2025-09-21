@@ -54,6 +54,18 @@ class Game {
   /// ID of the current node (cursor) in the SGF tree.
   int get currentId => _currentId;
 
+  /// Depth of the current node, counting root as depth zero.
+  int get currentDepth => _sgfTree.depthOf(_currentId);
+
+  /// Maximum depth of the game tree currently recorded.
+  int get depth => _sgfTree.depth;
+
+  /// Parent node ID, or null when at the root or node unknown.
+  int? parentOf(int nodeId) => _sgfTree.parentOf(nodeId);
+
+  /// Depth of the node with [nodeId]; root depth is zero.
+  int depthOf(int nodeId) => _sgfTree.depthOf(nodeId);
+
   // ---- Common root metadata accessors ----
   /// SGF `RU`: Ruleset name. Examples: `Japanese`, `Chinese`, `AGA`.
   String? get rule => _sgfTree.nodeById(_rootId)!.get('RU');

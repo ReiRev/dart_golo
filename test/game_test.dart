@@ -201,6 +201,42 @@ void main() {
       });
     });
 
+    group('depth', () {
+      test('distinguishes current depth and overall tree depth', () {
+        final game = Game();
+        expect(game.currentDepth, 0);
+        expect(game.depth, 0);
+
+        game.play((x: 3, y: 3));
+        expect(game.currentDepth, 1);
+        expect(game.depth, 1);
+
+        game.pass();
+        expect(game.currentDepth, 2);
+        expect(game.depth, 2);
+
+        game.goBack();
+        expect(game.currentDepth, 1);
+        expect(game.depth, 2);
+
+        game.undo();
+        expect(game.currentDepth, 0);
+        expect(game.depth, 2);
+      });
+
+      test('exposes parentOf and depthOf helpers', () {
+        final game = Game();
+        final rootId = game.rootId;
+        expect(game.parentOf(rootId), isNull);
+        expect(game.depthOf(rootId), 0);
+
+        game.play((x: 3, y: 3));
+        final childId = game.currentId;
+        expect(game.parentOf(childId), rootId);
+        expect(game.depthOf(childId), 1);
+      });
+    });
+
     group('play', () {
       test('advances board and alternates turns', () {
         final game = Game();
