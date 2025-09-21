@@ -513,6 +513,34 @@ void main() {
       expect(sgf.contains('W['), false);
     });
 
+    test('removing root with includeSelf true throws', () {
+      final game = Game();
+      expect(() => game.remove(nodeId: game.rootId, includeSelf: true),
+          throwsStateError);
+    });
+
+    test('includeSelf false keeps node but clears descendants', () {
+      final game = Game(width: 9);
+
+      game.play((x: 2, y: 2)); // id 1
+      game.play((x: 3, y: 3)); // id 2
+      final targetId = game.currentId;
+      final snapshot = game.board;
+
+      game.play((x: 4, y: 4)); // id 3, descendant of target
+
+      game.remove(nodeId: targetId, includeSelf: false);
+
+      expect(game.currentId, targetId);
+      expect(game.currentPlayer, Stone.black);
+
+      final remaining = game.boardAt(targetId);
+      final diff = remaining.diff(snapshot);
+      expect(diff, isNotNull);
+      expect(diff!.isEmpty, true);
+      expect(() => game.boardAt(3), throwsStateError);
+    });
+
     test('removes non-current branch and preserves other variations', () {
       final game = Game(width: 9);
 
