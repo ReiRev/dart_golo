@@ -1,3 +1,10 @@
+## 1.0.2
+
+- Game: add `depth` (max depth), `currentDepth`, `parentOf`, and `depthOf` helpers.
+- Game: `remove({nodeId, includeSelf})` can now keep a node while clearing descendants and still guards against removing the root.
+- SgfTree: add `depth`, `currentDepth`, and `depthOf(id)` helpers mirroring the Game API.
+- Tests: extend coverage for depth helpers and removal options.
+
 ## 1.0.1
 
 - Game: add `remove({nodeId})` to delete a node or truncate from root.
