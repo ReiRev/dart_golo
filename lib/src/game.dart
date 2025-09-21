@@ -297,6 +297,54 @@ class Game {
     return boardAt(_currentId);
   }
 
+  /// Move cursor to the first child (next move in the main line). Does nothing when none.
+  void goNext() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goNext();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Move cursor to the i-th child (variation at index [i]). Out-of-range is ignored.
+  void goAt(int nodeId) {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goNextAt(nodeId);
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Move cursor back to the parent node. No-op at the root.
+  void goBack() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goBack();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Cycle to the next sibling node (or between roots when at a root).
+  void goSibling() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goSibling();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
   /// Removes nodes from the game tree starting at [nodeId].
   ///
   /// - When [nodeId] is omitted, uses the current node.
