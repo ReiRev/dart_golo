@@ -25,7 +25,8 @@ void main() {
           )
         ],
       );
-      expect(DeepCollectionEquality().equals(parsed.children.first, expected), true);
+      expect(DeepCollectionEquality().equals(parsed.children.first, expected),
+          true);
     });
 
     test('should not omit CA property', () {
@@ -39,7 +40,8 @@ void main() {
         },
         [],
       );
-      expect(DeepCollectionEquality().equals(parsed.children.first, expected), true);
+      expect(DeepCollectionEquality().equals(parsed.children.first, expected),
+          true);
     });
 
     test('should parse variations', () {
@@ -70,7 +72,8 @@ void main() {
           ),
         ],
       );
-      expect(DeepCollectionEquality().equals(parsed.children.first, expected), true);
+      expect(DeepCollectionEquality().equals(parsed.children.first, expected),
+          true);
     });
 
     test('should emit onNodeCreated correctly', () {
@@ -119,7 +122,8 @@ void main() {
           }, []),
         ],
       );
-      expect(DeepCollectionEquality().equals(parsed.children.first, expected), true);
+      expect(DeepCollectionEquality().equals(parsed.children.first, expected),
+          true);
     });
 
     test('should parse a relatively complex file', () {
@@ -134,7 +138,8 @@ void main() {
       final tree1 = Parser().parse(';B[hh];W[ii]');
       final tree2 = Parser().parse('(;B[hh];W[ii])');
       expect(
-        DeepCollectionEquality().equals(_normalizeRoot(tree1), _normalizeRoot(tree2)),
+        DeepCollectionEquality()
+            .equals(_normalizeRoot(tree1), _normalizeRoot(tree2)),
         true,
       );
     });
@@ -171,7 +176,8 @@ void main() {
           }, []),
         ],
       );
-      expect(DeepCollectionEquality().equals(parsed.children.first, expected), true);
+      expect(DeepCollectionEquality().equals(parsed.children.first, expected),
+          true);
     });
   });
 }

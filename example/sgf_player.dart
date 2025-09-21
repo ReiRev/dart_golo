@@ -41,7 +41,8 @@ void main(List<String> args) async {
   final nodeDatas = <Map<String, List<String>>>[];
   try {
     final tree = sgf.Parser().parse(text);
-    final root = tree.id < 0 && tree.children.isNotEmpty ? tree.children.first : tree;
+    final root =
+        tree.id < 0 && tree.children.isNotEmpty ? tree.children.first : tree;
     final mainline = _extractMainline(root);
     if (mainline.isNotEmpty) {
       // Root data first
