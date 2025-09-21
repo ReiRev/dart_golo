@@ -360,12 +360,12 @@ class Game {
   /// Removes nodes from the game tree starting at [nodeId].
   ///
   /// - When [nodeId] is omitted, uses the current node.
-  /// - If [nodeId] is the root, preserves the root and removes all its
-  ///   descendants (truncates the game to the root setup).
-  /// - Otherwise, removes the node itself and its entire subtree, detaching it
-  ///   from its parent.
+  /// - When [includeSelf] is `true`, removes the node itself and its subtree.
+  /// - When [includeSelf] is `false`, keeps the node and removes all descendants.
+  /// - Root node cannot be removed; requesting `includeSelf == true` on the root
+  ///   throws a [StateError].
   /// - Updates the board snapshots and current cursor/player when necessary.
-  void remove({int? nodeId}) {
+  void remove({int? nodeId, bool? includeSelf}) {
     final targetId = nodeId ?? _currentId;
 
     final target = _sgfTree.nodeById(targetId);
@@ -373,20 +373,25 @@ class Game {
       throw StateError('No such node: id=$targetId');
     }
 
-    final includeSelf = targetId != _rootId;
+    final isRoot = targetId == _rootId;
+    if (includeSelf == true && isRoot) {
+      throw StateError('Cannot remove the root node');
+    }
+    final effectiveIncludeSelf = includeSelf ?? !isRoot;
 
     // Capture context before removal for cursor/player update.
     final oldCurrentId = _currentId;
     final oldParentOfTarget = _sgfTree.parentOf(targetId);
 
     // Perform deletion on SGF tree and board snapshots.
-    final removedIds = _sgfTree.removeFrom(targetId, includeSelf: includeSelf);
+    final removedIds =
+        _sgfTree.removeFrom(targetId, includeSelf: effectiveIncludeSelf);
     for (final id in removedIds) {
       _boardTree.remove(id);
     }
 
     // Update current cursor and player if needed.
-    if (includeSelf) {
+    if (effectiveIncludeSelf) {
       // Target node removed. Move to parent (or root if none) when affected.
       if (removedIds.contains(oldCurrentId)) {
         final newCur = oldParentOfTarget ?? _rootId;
