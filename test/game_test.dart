@@ -420,4 +420,84 @@ void main() {
       expect(game.undo(), isNull); // already at root
     });
   });
+
+  group('remove', () {
+    test('removes current node and moves cursor to parent', () {
+      final game = Game(width: 9);
+
+      // B[dd] then W[ee]
+      game.play((x: 3, y: 3)); // id 1
+      final snapAfterFirst = game.boardAt(1);
+      game.play((x: 4, y: 4)); // id 2
+
+      expect(game.currentId, 2);
+
+      game.remove(); // remove current node (id 2)
+
+      expect(game.currentId, 1);
+      // Board should be identical to snapshot after first move
+      final cur = game.board;
+      final diff = cur.diff(snapAfterFirst);
+      expect(diff, isNotNull);
+      expect(diff!.isEmpty, true);
+
+      // Current player should be the undone color (W)
+      expect(game.currentPlayer, Stone.white);
+
+      // Removed snapshots are gone
+      expect(() => game.boardAt(2), throwsStateError);
+      // SGF should no longer contain the removed move W[ee]
+      final sgf = game.toSgf(linebreak: '');
+      expect(sgf.contains('W[ee]'), false);
+      // And the parent (id 1: B[dd]) should have no children left
+      // i.e., there must be no further ';' after ';B[dd]'.
+      final idx = sgf.indexOf(';B[dd]');
+      expect(idx, isNot(-1));
+      expect(sgf.indexOf(';', idx + ';B[dd]'.length), -1);
+    });
+
+    test('removes descendants of root and keeps root intact', () {
+      final game = Game(width: 9);
+
+      game.play((x: 2, y: 2)); // B[cc] id 1
+      game.play((x: 3, y: 3)); // W[dd] id 2
+
+      game.remove(game.rootId); // keep root, remove all children
+
+      expect(game.currentId, game.rootId);
+      expect(game.currentPlayer, Stone.black); // first removed was B
+
+      final rootBoard = game.boardAt(game.rootId);
+      expect(rootBoard.isEmpty(), true);
+      expect(() => game.boardAt(1), throwsStateError);
+      expect(() => game.boardAt(2), throwsStateError);
+
+      final sgf = game.toSgf(linebreak: '');
+      expect(sgf.contains('B['), false);
+      expect(sgf.contains('W['), false);
+    });
+
+    test('removes non-current branch and preserves other variations', () {
+      final game = Game(width: 9);
+
+      // First branch: B[cc] (id 1)
+      game.play((x: 2, y: 2));
+      final id1 = game.currentId;
+
+      // Go back to root and create another first move variant: B[dd] (id 2)
+      game.undo();
+      game.play((x: 3, y: 3));
+      final id2 = game.currentId;
+
+      // Remove the other branch (id1). Current should stay on id2.
+      game.remove(id1);
+
+      expect(game.currentId, id2);
+      expect(() => game.boardAt(id1), throwsStateError);
+
+      final sgf = game.toSgf(linebreak: '');
+      expect(sgf.contains('B[cc]'), false);
+      expect(sgf.contains('B[dd]'), true);
+    });
+  });
 }

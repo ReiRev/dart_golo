@@ -312,6 +312,89 @@ class Game {
     return boardAt(_currentId);
   }
 
+  /// Removes nodes from the game tree starting at [nodeId].
+  ///
+  /// - When [nodeId] is omitted, uses the current node.
+  /// - If [nodeId] is the root, preserves the root and removes all its
+  ///   descendants (truncates the game to the root setup).
+  /// - Otherwise, removes the node itself and its entire subtree, detaching it
+  ///   from its parent.
+  /// - Updates the board snapshots and current cursor/player when necessary.
+  void remove(int? nodeId) {
+    final targetId = nodeId ?? _currentId;
+
+    final target = _sgfTree.nodeById(targetId);
+    if (target == null) {
+      throw StateError('No such node: id=$targetId');
+    }
+
+    final includeSelf = targetId != _rootId;
+
+    // Capture context before removal for cursor/player update.
+    final oldCurrentId = _currentId;
+    final oldParentOfTarget = _sgfTree.parentOf(targetId);
+
+    // Determine the color of the earliest undone move to update current player.
+    Stone? undoneColor;
+    if (includeSelf) {
+      // Removing [targetId] itself; its move color (B/W) will be undone.
+      final data = target.data;
+      if (data.containsKey('B')) {
+        undoneColor = Stone.black;
+      } else if (data.containsKey('W')) {
+        undoneColor = Stone.white;
+      }
+    } else if (oldCurrentId != targetId) {
+      // Keeping [targetId], removing descendants. If current is inside the
+      // removed subtree, the immediate child along the path from target ->
+      // current determines the undone color.
+      // Find the first child on the path: climb from oldCurrentId up to targetId.
+      int? cursor = oldCurrentId;
+      int? prev = cursor;
+      while (cursor != null && cursor != targetId) {
+        prev = cursor;
+        cursor = _sgfTree.parentOf(cursor);
+      }
+      // [prev] is the immediate child of [targetId] along the old current path.
+      if (cursor == targetId && prev != null) {
+        final n = _sgfTree.nodeById(prev);
+        if (n != null) {
+          if (n.data.containsKey('B')) {
+            undoneColor = Stone.black;
+          } else if (n.data.containsKey('W')) {
+            undoneColor = Stone.white;
+          }
+        }
+      }
+    }
+
+    // Perform deletion on SGF tree and board snapshots.
+    final removedIds = _sgfTree.removeFrom(targetId, includeSelf: includeSelf);
+    for (final id in removedIds) {
+      _boardTree.remove(id);
+    }
+
+    // Update current cursor and player if needed.
+    if (includeSelf) {
+      // Target node removed. Move to parent (or root if none) when affected.
+      if (removedIds.contains(oldCurrentId)) {
+        final newCur = oldParentOfTarget ?? _rootId;
+        _currentId = newCur;
+        if (undoneColor != null) {
+          _currentPlayer = undoneColor;
+        }
+      }
+    } else {
+      // Target kept; descendants removed. If current was removed, move back to target.
+      if (removedIds.contains(oldCurrentId)) {
+        _currentId = targetId;
+        if (undoneColor != null) {
+          _currentPlayer = undoneColor;
+        }
+      }
+    }
+  }
+
   static (int, int) _parseSize(List<String>? values) {
     if (values == null || values.isEmpty) return (19, 19);
     final v = values.first.trim();
