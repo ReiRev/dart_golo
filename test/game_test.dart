@@ -462,7 +462,7 @@ void main() {
       game.play((x: 2, y: 2)); // B[cc] id 1
       game.play((x: 3, y: 3)); // W[dd] id 2
 
-      game.remove(game.rootId); // keep root, remove all children
+      game.remove(nodeId: game.rootId); // keep root, remove all children
 
       expect(game.currentId, game.rootId);
       expect(game.currentPlayer, Stone.black); // first removed was B
@@ -490,7 +490,7 @@ void main() {
       final id2 = game.currentId;
 
       // Remove the other branch (id1). Current should stay on id2.
-      game.remove(id1);
+      game.remove(nodeId: id1);
 
       expect(game.currentId, id2);
       expect(() => game.boardAt(id1), throwsStateError);
