@@ -290,7 +290,6 @@ class Game {
   /// - Returns `null` if already at the root (nothing to undo).
   Board? undo() {
     if (!canUndo) return null;
-    final undone = _sgfTree.nodeById(_currentId)!;
     final parentId = _sgfTree.parentOf(_currentId);
     if (parentId == null) return null;
 
