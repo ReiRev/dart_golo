@@ -154,6 +154,40 @@ void main() {
       });
     });
 
+    group('depth', () {
+      test('depthOf counts edges to the root', () {
+        final tree = SgfTree();
+        final r = tree.addRoot(Node({}, []));
+        final c1 = tree.addChild(Node({}, []), parentId: r);
+        final c2 = tree.addChild(Node({}, []), parentId: c1);
+        expect(tree.depthOf(r), 0);
+        expect(tree.depthOf(c1), 1);
+        expect(tree.depthOf(c2), 2);
+      });
+
+      test('currentDepth reflects cursor position', () {
+        final tree = SgfTree();
+        final r = tree.addRoot(Node({}, []));
+        tree.moveTo(r);
+        expect(tree.currentDepth, 0);
+        final c = tree.addChild(Node({}, []), parentId: r);
+        tree.moveTo(c);
+        expect(tree.currentDepth, 1);
+      });
+
+      test('depth reports maximum depth regardless of cursor', () {
+        final tree = SgfTree();
+        final r = tree.addRoot(Node({}, []));
+        final c1 = tree.addChild(Node({}, []), parentId: r);
+        final c2 = tree.addChild(Node({}, []), parentId: c1);
+        tree.moveTo(c2);
+        expect(tree.depth, 2);
+        tree.moveTo(r);
+        expect(tree.currentDepth, 0);
+        expect(tree.depth, 2);
+      });
+    });
+
     group('data/dataAt/add', () {
       test('edits data at cursor and by id', () {
         final tree = SgfTree();

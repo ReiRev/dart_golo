@@ -88,6 +88,55 @@ class SgfTree {
 
   int? parentOf(int id) => _parentOf[id];
 
+  /// Returns the depth (distance from the root) of [id]. Root depth is zero.
+  int depthOf(int id) {
+    if (!_nodesById.containsKey(id)) {
+      throw StateError('No such node: id=$id');
+    }
+    var depth = 0;
+    var cur = id;
+    while (true) {
+      final parent = _parentOf[cur];
+      if (parent == null) return depth;
+      depth++;
+      cur = parent;
+    }
+  }
+
+  /// Depth of the cursor node, or null when the cursor is unset.
+  int? get currentDepth => _cursor == null ? null : depthOf(_cursor!);
+
+  /// Maximum depth across the entire tree.
+  int get depth {
+    if (rootNodes.isEmpty) return 0;
+
+    int maxDepth = 0;
+
+    int traverse(int id, int accDepth) {
+      final node = _nodesById[id];
+      if (node == null || node.children.isEmpty) {
+        return accDepth;
+      }
+      var localMax = accDepth;
+      for (final childId in node.children) {
+        final childDepth = traverse(childId, accDepth + 1);
+        if (childDepth > localMax) {
+          localMax = childDepth;
+        }
+      }
+      return localMax;
+    }
+
+    for (final rootId in rootNodes) {
+      final depthFromRoot = traverse(rootId, 0);
+      if (depthFromRoot > maxDepth) {
+        maxDepth = depthFromRoot;
+      }
+    }
+
+    return maxDepth;
+  }
+
   Map<String, List<String>> get data {
     final cur = _cursor;
     if (cur == null) return {};
