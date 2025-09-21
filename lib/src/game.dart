@@ -10,7 +10,7 @@ class Game {
   late final BoardTree _boardTree;
   late final int _rootId;
   late int _currentId;
-  Stone _currentPlayer = Stone.black;
+  // currentPlayer is computed based on the last move at _currentId.
 
   /// Creates a new game with a configurable board size.
   ///
@@ -46,7 +46,7 @@ class Game {
 
   Board get board => boardAt(_currentId);
 
-  Stone get currentPlayer => _currentPlayer;
+  Stone get currentPlayer => _nextPlayerAfter(_currentId);
 
   /// ID of the root node in the SGF tree.
   int get rootId => _rootId;
@@ -179,12 +179,13 @@ class Game {
   ///   [IllegalMoveException] when violated.
   /// - Updates the internal SGF tree by appending a node to the current line.
   void play(Vertex vertex) {
-    final node = Node.move(_currentPlayer, vertex);
+    final color = currentPlayer;
+    final node = Node.move(color, vertex);
     final newId = _sgfTree.addChild(node, parentId: _currentId);
     _boardTree.moveTo(_currentId);
     _boardTree.commitMove(
       newId,
-      _currentPlayer,
+      color,
       vertex,
       preventOutOfBoard: true,
       preventOverwrite: true,
@@ -193,18 +194,17 @@ class Game {
     );
     _sgfTree.moveTo(newId);
     _currentId = newId;
-    _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
   /// Passes the current player's turn.
   void pass() {
-    final node = Node.pass(_currentPlayer);
+    final color = currentPlayer;
+    final node = Node.pass(color);
     final newId = _sgfTree.addChild(node, parentId: _currentId);
     _boardTree.moveTo(_currentId);
-    _boardTree.commitPass(newId, _currentPlayer);
+    _boardTree.commitPass(newId, color);
     _sgfTree.moveTo(newId);
     _currentId = newId;
-    _currentPlayer = _currentPlayer == Stone.black ? Stone.white : Stone.black;
   }
 
   /// Stringify this game to SGF text using the internal game tree.
@@ -262,9 +262,6 @@ class Game {
       final values = node.data[isBlack ? 'B' : 'W']!;
       final coord = values.isNotEmpty ? values.first : '';
 
-      // Ensure turn matches the node color.
-      game._currentPlayer = isBlack ? Stone.black : Stone.white;
-
       if (coord.isEmpty) {
         game.pass();
       } else {
@@ -293,23 +290,115 @@ class Game {
   /// - Returns `null` if already at the root (nothing to undo).
   Board? undo() {
     if (!canUndo) return null;
-    final undone = _sgfTree.nodeById(_currentId)!;
     final parentId = _sgfTree.parentOf(_currentId);
     if (parentId == null) return null;
 
-    // Determine undone color from node data.
-    Stone? undoneColor;
-    if (undone.data.containsKey('B')) {
-      undoneColor = Stone.black;
-    } else if (undone.data.containsKey('W')) {
-      undoneColor = Stone.white;
+    _currentId = parentId;
+    return boardAt(_currentId);
+  }
+
+  /// Move cursor to the first child (next move in the main line). Does nothing when none.
+  void goNext() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goNext();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Move cursor to the i-th child (variation at index [i]). Out-of-range is ignored.
+  void goAt(int nodeId) {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goNextAt(nodeId);
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Move cursor back to the parent node. No-op at the root.
+  void goBack() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goBack();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Cycle to the next sibling node (or between roots when at a root).
+  void goSibling() {
+    _sgfTree.moveTo(_currentId);
+    final before = _sgfTree.cursorId;
+    _sgfTree.goSibling();
+    final after = _sgfTree.cursorId;
+    if (after != null && after != before) {
+      _currentId = after;
+      _boardTree.moveTo(_currentId);
+    }
+  }
+
+  /// Removes nodes from the game tree starting at [nodeId].
+  ///
+  /// - When [nodeId] is omitted, uses the current node.
+  /// - If [nodeId] is the root, preserves the root and removes all its
+  ///   descendants (truncates the game to the root setup).
+  /// - Otherwise, removes the node itself and its entire subtree, detaching it
+  ///   from its parent.
+  /// - Updates the board snapshots and current cursor/player when necessary.
+  void remove({int? nodeId}) {
+    final targetId = nodeId ?? _currentId;
+
+    final target = _sgfTree.nodeById(targetId);
+    if (target == null) {
+      throw StateError('No such node: id=$targetId');
     }
 
-    _currentId = parentId;
-    if (undoneColor != null) {
-      _currentPlayer = undoneColor;
+    final includeSelf = targetId != _rootId;
+
+    // Capture context before removal for cursor/player update.
+    final oldCurrentId = _currentId;
+    final oldParentOfTarget = _sgfTree.parentOf(targetId);
+
+    // Perform deletion on SGF tree and board snapshots.
+    final removedIds = _sgfTree.removeFrom(targetId, includeSelf: includeSelf);
+    for (final id in removedIds) {
+      _boardTree.remove(id);
     }
-    return boardAt(_currentId);
+
+    // Update current cursor and player if needed.
+    if (includeSelf) {
+      // Target node removed. Move to parent (or root if none) when affected.
+      if (removedIds.contains(oldCurrentId)) {
+        final newCur = oldParentOfTarget ?? _rootId;
+        _currentId = newCur;
+      }
+    } else {
+      // Target kept; descendants removed. If current was removed, move back to target.
+      if (removedIds.contains(oldCurrentId)) {
+        _currentId = targetId;
+      }
+    }
+  }
+
+  Stone _nextPlayerAfter(int id) {
+    var cur = id;
+    while (true) {
+      final node = _sgfTree.nodeById(cur);
+      if (node == null) return Stone.black;
+      if (node.data.containsKey('B')) return Stone.white;
+      if (node.data.containsKey('W')) return Stone.black;
+      final p = _sgfTree.parentOf(cur);
+      if (p == null) return Stone.black; // reached root with no moves
+      cur = p;
+    }
   }
 
   static (int, int) _parseSize(List<String>? values) {

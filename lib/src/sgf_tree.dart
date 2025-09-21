@@ -106,6 +106,64 @@ class SgfTree {
 
   // Board operations are managed by BoardTree.
 
+  /// Removes nodes starting from [id].
+  ///
+  /// - When [includeSelf] is true, removes the node [id] itself and its entire
+  ///   subtree, detaching it from its parent (or from roots when it is a root).
+  /// - When [includeSelf] is false, keeps [id] and removes all its descendants
+  ///   (clears its children list).
+  /// - Returns the list of removed node IDs (in no particular order).
+  /// - If [id] does not exist, returns an empty list.
+  List<int> removeFrom(int id, {bool includeSelf = true}) {
+    if (!_nodesById.containsKey(id)) return const <int>[];
+
+    // Collect subtree ids (including [id]).
+    final toRemove = <int>[];
+    void dfs(int nid) {
+      final n = _nodesById[nid];
+      if (n == null) return;
+      for (final c in n.children) {
+        dfs(c);
+      }
+      toRemove.add(nid);
+    }
+    dfs(id);
+
+    final keepSelf = !includeSelf;
+    if (keepSelf) {
+      // Keep the node itself; only remove its descendants.
+      toRemove.remove(id);
+      // Clear children relations from the kept node.
+      final self = _nodesById[id];
+      self?.children.clear();
+    } else {
+      // Detach from parent lists or roots.
+      final pid = _parentOf[id];
+      if (pid != null) {
+        final p = _nodesById[pid];
+        p?.children.removeWhere((e) => e == id);
+      } else {
+        rootNodes.removeWhere((e) => e == id);
+      }
+    }
+
+    // Preserve parent (for cursor update) before removing ids.
+    final parentBefore = _parentOf[id];
+
+    // Remove nodes and parent links.
+    for (final rid in toRemove) {
+      _nodesById.remove(rid);
+      _parentOf.remove(rid);
+    }
+
+    // Update cursor if it was inside the removed set.
+    if (_cursor != null && toRemove.contains(_cursor)) {
+      _cursor = keepSelf ? id : parentBefore;
+    }
+
+    return toRemove;
+  }
+
   String toSgf({String linebreak = '\n', String indent = '  '}) {
     final buf = StringBuffer();
 
