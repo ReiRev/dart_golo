@@ -1,3 +1,11 @@
+## 1.0.1
+
+- Game: add `remove({nodeId})` to delete a node or truncate from root.
+- SgfTree: add `removeFrom(id, {includeSelf})` for recursive deletion.
+- Game: add navigation helpers `goNext`, `goAt` (variation index), `goBack`, `goSibling`.
+- Game: `currentPlayer` is now computed from the last move (no mutable state).
+- Tests: add coverage for removal and navigation; minor assertions tightened.
+
 ## 1.0.0
 
 - Breaking: Renamed and consolidated core APIs.
