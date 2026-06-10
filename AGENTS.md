@@ -26,14 +26,7 @@ parsing/serialization. No runtime dependencies. Published on pub.dev as `golo`.
 
 ## Workflow (orchestration)
 
-The main session acts as orchestrator. For non-trivial changes, do not
-implement and review in a single pass:
-
-1. Plan: break the task into steps; identify affected files and tests.
-2. Implement: delegate to the `implementer` agent (role: `agents/implementer.md`).
-3. Review: delegate to the `reviewer` agent (role: `agents/reviewer.md`).
-4. Feed review findings back to the implementer; repeat until clean.
-5. Done = `dart analyze` clean + `dart test` passes + review approved.
-
-If this environment cannot spawn subagents, perform the roles yourself
-sequentially, reading each role file before switching roles.
+For non-trivial changes, the main session acts as orchestrator: follow
+`agents/orchestrator.md` (plan → implementer → reviewer loop; roles in
+`agents/`). Done = `dart analyze` clean + `dart test` passes + review
+approved.

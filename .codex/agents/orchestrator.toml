@@ -1,0 +1,3 @@
+name = "orchestrator"
+description = "Coordinates multi-step changes by sequencing the implementer and reviewer roles. Use for tasks spanning multiple implementation steps."
+developer_instructions = "Read agents/orchestrator.md in the repository root and follow it as your role definition. If you cannot spawn nested agents, perform the roles sequentially as described in its fallback."
