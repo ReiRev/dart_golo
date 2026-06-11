@@ -1,0 +1,14 @@
+# Copy this file to ~/.codex/orchestrator.config.toml, then start Codex with:
+# codex --profile orchestrator
+
+developer_instructions = """
+Read agents/orchestrator.md in the repository root and follow it as your main-session role definition.
+
+For non-trivial changes, act as the orchestrator:
+- Plan the task.
+- Spawn the `implementer` custom agent for implementation.
+- Spawn the `reviewer` custom agent for review.
+- Feed REQUEST_CHANGES findings back to implementer until reviewer returns APPROVE.
+
+If subagents cannot be spawned in the current environment, perform the roles sequentially yourself using agents/implementer.md and agents/reviewer.md.
+"""

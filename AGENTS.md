@@ -26,7 +26,9 @@ parsing/serialization. No runtime dependencies. Published on pub.dev as `golo`.
 
 ## Workflow (orchestration)
 
-For non-trivial changes, the main session acts as orchestrator: follow
-`agents/orchestrator.md` (plan → implementer → reviewer loop; roles in
-`agents/`). Done = `dart analyze` clean + `dart test` passes + review
-approved.
+For non-trivial changes, the main session acts as orchestrator. Prefer starting
+Codex with the `orchestrator` profile (`codex --profile orchestrator`), which
+loads `agents/orchestrator.md` as the main-session role. The implementer and
+reviewer roles are project-scoped custom agents in `.codex/agents/`.
+
+Done = `dart analyze` clean + `dart test` passes + review approved.
