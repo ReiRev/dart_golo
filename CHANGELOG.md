@@ -1,3 +1,17 @@
+## Unreleased
+
+- Added: Monte Carlo dead stone estimation ported from the Rust sources of
+  `@sabaki/deadstones` (`lib/src/scoring/deadstones.dart`, exported from
+  `package:golo/golo.dart`).
+  - `guess(Board, {finished, iterations, seed})` — per-chain dead stone
+    judgement, with a life/death consistency pass for finished games.
+  - `getProbabilityMap(Board, {iterations, seed})` — per-vertex ownership
+    probabilities in `[-1, 1]`.
+  - `getFloatingStones(Board)` — heuristic detection of obviously dead stones.
+  - `playTillEnd(PseudoBoard, sign, Random)` and the playout-only
+    `PseudoBoard` class.
+- Example: `example/deadstones_demo.dart`.
+
 ## 1.0.2
 
 - Game: add `depth` (max depth), `currentDepth`, `parentOf`, and `depthOf` helpers.
