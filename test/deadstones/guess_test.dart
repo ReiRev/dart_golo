@@ -7,6 +7,9 @@ void main() {
   final finishedBoard = boardFromSigns(finishedGameData);
   final unfinishedBoard = boardFromSigns(unfinishedGameData);
 
+  // Upstream (SabakiHQ/deadstones @ 764f5c0) used `t.assert(value, msg)`, which
+  // only checks truthiness, so it never actually detected mutation. We verify
+  // properly via clone/diff.
   test('should not mutate board data', () {
     final before = finishedBoard.clone();
 
