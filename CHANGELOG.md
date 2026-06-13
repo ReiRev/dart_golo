@@ -1,7 +1,7 @@
 ## Unreleased
 
 - Added: Monte Carlo dead stone estimation ported from the Rust sources of
-  `@sabaki/deadstones` (`lib/src/scoring/deadstones.dart`, exported from
+  `@sabaki/deadstones` (`lib/src/deadstones/deadstones.dart`, exported from
   `package:golo/golo.dart`).
   - `guess(Board, {finished, iterations, seed})` — per-chain dead stone
     judgement, with a life/death consistency pass for finished games.
