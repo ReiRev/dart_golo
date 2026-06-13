@@ -9,8 +9,8 @@ void main() {
   test('should return same dimensions of input data', () {
     final result = influenceMap(boardFromSigns(unfinished));
 
-    expect(result.length, unfinished.length);
-    expect(result[0].length, unfinished[0].length);
+    expect(unfinished.length, result.length);
+    expect(unfinished[0].length, result[0].length);
   });
 
   test('should have same sign as stones on stone vertices', () {
@@ -27,22 +27,15 @@ void main() {
   test('should return a number between -1 and 1', () {
     final result = influenceMap(boardFromSigns(unfinished));
 
-    for (var y = 0; y < unfinished.length; y++) {
-      for (var x = 0; x < unfinished[0].length; x++) {
-        expect(-1 <= result[y][x], isTrue);
-        expect(result[y][x] <= 1, isTrue);
-      }
-    }
+    expect(
+        result.every((row) => row.every(((v) => -1 <= v && v <= 1))), isTrue);
   });
 
   test('should return -1, 0, 1 if discrete is set to true', () {
     final result = influenceMap(boardFromSigns(unfinished), discrete: true);
 
-    for (var y = 0; y < unfinished.length; y++) {
-      for (var x = 0; x < unfinished[0].length; x++) {
-        expect([-1, 0, 1].contains(result[y][x]), isTrue);
-      }
-    }
+    expect(result.every((row) => row.every(((v) => [-1, 0, 1].contains(v)))),
+        isTrue);
   });
 
   test('a stone at 3 3 should control the corner', () {
