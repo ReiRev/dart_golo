@@ -9,6 +9,8 @@ void main() {
   final finishedBoard = boardFromSigns(finishedGameData);
   final unfinishedBoard = boardFromSigns(unfinishedGameData);
 
+  // playTillEnd clones its input up front, so the argument is structurally
+  // never touched; this is a regression check on that contract.
   test('should not mutate board data', () {
     final pseudo = PseudoBoard.fromBoard(finishedBoard);
     final before = List.of(pseudo.data);
