@@ -1,3 +1,10 @@
+## Unreleased
+
+- Influence: add static heuristics ported from `@sabaki/influence` (MIT, ©
+  Yichuan Shen): `areaMap`, `nearestNeighborMap`, `radianceMap`, and
+  `influenceMap`, all operating on a `Board`.
+- Tests: port the upstream influence test suite to `test/influence/`.
+
 ## 1.0.2
 
 - Game: add `depth` (max depth), `currentDepth`, `parentOf`, and `depthOf` helpers.
