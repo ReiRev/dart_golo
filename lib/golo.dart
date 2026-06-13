@@ -6,4 +6,5 @@ export 'src/game.dart';
 export 'src/node.dart';
 export 'src/sgf_tree.dart';
 export 'src/board_tree.dart';
+export 'src/deadstones/deadstones.dart';
 export 'src/influence/influence.dart';
