@@ -10,7 +10,13 @@
   - `getFloatingStones(Board)` — heuristic detection of obviously dead stones.
   - `playTillEnd(PseudoBoard, sign, Random)` and the playout-only
     `PseudoBoard` class.
-- Example: `example/deadstones_demo.dart`.
+- Example: `example/golo_repl.dart` gains `prob`, `dead`, `influence`, and
+  `area` commands that run the deadstones/influence analyses on the current
+  position.
+- Influence: add static heuristics ported from `@sabaki/influence` (MIT, ©
+  Yichuan Shen): `areaMap`, `nearestNeighborMap`, `radianceMap`, and
+  `influenceMap`, all operating on a `Board`.
+- Tests: port the upstream influence test suite to `test/influence/`.
 
 ## 1.0.2
 

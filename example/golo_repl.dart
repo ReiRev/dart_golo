@@ -116,6 +116,37 @@ void main(List<String> args) {
           stdout.writeln('Liberties of ${parts[1].toUpperCase()}: '
               '${libs.isEmpty ? '(none)' : libs.join(', ')}');
           break;
+        case 'influence':
+        case 'inf':
+          stdout.writeln('Continuous influence (values in [-1, 1]):');
+          _printMap(influenceMap(game.board), decimals: 2);
+          break;
+        case 'area':
+          stdout.writeln('Area map (1 = black, -1 = white, 0 = neutral):');
+          _printMap(areaMap(game.board));
+          break;
+        case 'prob':
+          final opts = _parseAnalysisArgs(parts.skip(1));
+          stdout.writeln('Ownership probability map (B = black, W = white):');
+          final map = getProbabilityMap(game.board,
+              iterations: opts.iterations, seed: opts.seed);
+          for (final row in map) {
+            stdout.writeln(row
+                .map((p) => '${p < 0 ? 'W' : 'B'}${(p.abs() * 9).round()}')
+                .join(' '));
+          }
+          stdout.writeln('');
+          break;
+        case 'dead':
+          final opts = _parseAnalysisArgs(parts.skip(1));
+          final floating = getFloatingStones(game.board);
+          stdout.writeln('Floating stones: '
+              '${_vertexList(game.board, floating)}');
+          final dead = guess(game.board,
+              finished: true, iterations: opts.iterations, seed: opts.seed);
+          stdout.writeln('Guessed dead stones: '
+              '${_vertexList(game.board, dead)}');
+          break;
         case 'b':
         case 'w':
         case 'play':
@@ -264,6 +295,10 @@ void _printHelp() {
   stdout.writeln('  undo                   revert last move or pass');
   stdout.writeln('  new <N>[x<M>]          start new board');
   stdout.writeln('  show                   print the board');
+  stdout.writeln('  influence              influence map (values in [-1, 1])');
+  stdout.writeln('  area                   area (territory) map');
+  stdout.writeln('  prob [iters] [seed]    Monte Carlo ownership map');
+  stdout.writeln('  dead [iters] [seed]    floating + guessed dead stones');
   stdout.writeln('  help                   show this help');
   stdout.writeln('  quit | exit            leave the REPL');
 }
@@ -278,4 +313,29 @@ void _printPlayUsage() {
 String _displayVertex(Board board, Vertex v) {
   final s = board.stringifyVertex(v);
   return s.isEmpty ? '(${v.x},${v.y})' : s;
+}
+
+String _vertexList(Board board, List<Vertex> vertices) => vertices.isEmpty
+    ? '(none)'
+    : vertices.map(board.stringifyVertex).join(', ');
+
+// Renders a numeric map row-by-row, aligned in columns.
+void _printMap(List<List<num>> map, {int? decimals}) {
+  for (final row in map) {
+    final cells = row.map((v) {
+      final s = decimals == null ? v.toString() : v.toStringAsFixed(decimals);
+      return s.padLeft(decimals == null ? 2 : 6);
+    });
+    stdout.writeln(cells.join(' '));
+  }
+  stdout.writeln('');
+}
+
+// Parses optional `[iterations] [seed]` trailing arguments for analysis
+// commands; both default to a deterministic demo configuration.
+({int iterations, int seed}) _parseAnalysisArgs(Iterable<String> args) {
+  final list = args.toList();
+  final iterations = list.isNotEmpty ? int.tryParse(list[0]) ?? 200 : 200;
+  final seed = list.length > 1 ? int.tryParse(list[1]) ?? 42 : 42;
+  return (iterations: iterations, seed: seed);
 }
